@@ -54,6 +54,7 @@ class AuthController extends AbstractController
                 'roles' => $user->getRoles(),
                 'firstName' => $user->getFirstName(),
                 'lastName' => $user->getLastName(),
+                'avatar' => $user->getAvatar(),
             ],
         ]);
     }
@@ -101,6 +102,7 @@ class AuthController extends AbstractController
                 'roles' => $user->getRoles(),
                 'firstName' => $user->getFirstName(),
                 'lastName' => $user->getLastName(),
+                'avatar' => $user->getAvatar(),
             ],
         ], Response::HTTP_CREATED);
     }
@@ -120,6 +122,7 @@ class AuthController extends AbstractController
             'roles' => $user->getRoles(),
             'firstName' => $user->getFirstName(),
             'lastName' => $user->getLastName(),
+            'avatar' => $user->getAvatar(),
         ]);
     }
 

@@ -145,6 +145,7 @@ class UserController extends AbstractController
             'lastName' => $user->getLastName(),
             'name' => trim(($user->getFirstName() ?? '') . ' ' . ($user->getLastName() ?? '')),
             'phone' => $user->getPhone(),
+            'avatar' => $user->getAvatar(),
             'roles' => $user->getRoles(),
             'role' => $this->formatRoleName($user->getRoles()),
             'isActive' => $user->isActive(),

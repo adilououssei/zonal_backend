@@ -28,6 +28,10 @@ security:
         - { path: ^/api/events, roles: PUBLIC_ACCESS }
         - { path: ^/api/news, roles: PUBLIC_ACCESS }
         - { path: ^/api/projects, roles: PUBLIC_ACCESS }
+        - { path: ^/api/gallery, roles: PUBLIC_ACCESS }
+        - { path: ^/api/partners, roles: PUBLIC_ACCESS }
+        - { path: ^/api/testimonials, roles: PUBLIC_ACCESS }
+        - { path: ^/api/documents, roles: PUBLIC_ACCESS }
         - { path: ^/api/admin, roles: ROLE_ADMIN }
         - { path: ^/api, roles: ROLE_USER }
 

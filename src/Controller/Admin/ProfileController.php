@@ -58,6 +58,9 @@ class ProfileController extends AbstractController
         if (isset($data['phone'])) {
             $user->setPhone($data['phone']);
         }
+        if (isset($data['avatar'])) {
+            $user->setAvatar($data['avatar']);
+        }
 
         $errors = $validator->validate($user);
         if (count($errors) > 0) {
@@ -108,6 +111,7 @@ class ProfileController extends AbstractController
             'lastName' => $user->getLastName(),
             'name' => trim(($user->getFirstName() ?? '') . ' ' . ($user->getLastName() ?? '')),
             'phone' => $user->getPhone(),
+            'avatar' => $user->getAvatar(),
             'roles' => $user->getRoles(),
             'isActive' => $user->isActive(),
             'lastLogin' => $user->getLastLoginAt()?->format('d/m/Y H:i'),
