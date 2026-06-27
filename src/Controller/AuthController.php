@@ -46,6 +46,8 @@ class AuthController extends AbstractController
 
         $token = $this->generateToken($user);
 
+        $role = $user->getRole();
+
         return $this->json([
             'token' => $token,
             'user' => [
@@ -55,6 +57,11 @@ class AuthController extends AbstractController
                 'firstName' => $user->getFirstName(),
                 'lastName' => $user->getLastName(),
                 'avatar' => $user->getAvatar(),
+                'roleEntity' => $role ? [
+                    'id' => $role->getId(),
+                    'name' => $role->getName(),
+                    'permissions' => $role->getPermissions(),
+                ] : null,
             ],
         ]);
     }
@@ -92,6 +99,7 @@ class AuthController extends AbstractController
         $em->persist($user);
         $em->flush();
 
+        $role = $user->getRole();
         $token = $this->generateToken($user);
 
         return $this->json([
@@ -103,6 +111,11 @@ class AuthController extends AbstractController
                 'firstName' => $user->getFirstName(),
                 'lastName' => $user->getLastName(),
                 'avatar' => $user->getAvatar(),
+                'roleEntity' => $role ? [
+                    'id' => $role->getId(),
+                    'name' => $role->getName(),
+                    'permissions' => $role->getPermissions(),
+                ] : null,
             ],
         ], Response::HTTP_CREATED);
     }
@@ -116,6 +129,8 @@ class AuthController extends AbstractController
             return $this->json(['error' => 'Non authentifié.'], Response::HTTP_UNAUTHORIZED);
         }
 
+        $role = $user->getRole();
+
         return $this->json([
             'id' => $user->getId(),
             'email' => $user->getEmail(),
@@ -123,6 +138,11 @@ class AuthController extends AbstractController
             'firstName' => $user->getFirstName(),
             'lastName' => $user->getLastName(),
             'avatar' => $user->getAvatar(),
+            'roleEntity' => $role ? [
+                'id' => $role->getId(),
+                'name' => $role->getName(),
+                'permissions' => $role->getPermissions(),
+            ] : null,
         ]);
     }
 

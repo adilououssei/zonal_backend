@@ -12,6 +12,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Testimonial
 {
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $createdBy = null;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -40,6 +43,15 @@ class Testimonial
 
     #[ORM\Column(length: 20, options: ['default' => 'published'])]
     private string $status = 'published';
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $authorEn = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $roleEn = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $contentEn = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
@@ -79,4 +91,14 @@ class Testimonial
     public function setStatus(string $status): static { $this->status = $status; return $this; }
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
+
+    public function getAuthorEn(): ?string { return $this->authorEn; }
+    public function setAuthorEn(?string $authorEn): static { $this->authorEn = $authorEn; return $this; }
+    public function getRoleEn(): ?string { return $this->roleEn; }
+    public function setRoleEn(?string $roleEn): static { $this->roleEn = $roleEn; return $this; }
+    public function getContentEn(): ?string { return $this->contentEn; }
+    public function setContentEn(?string $contentEn): static { $this->contentEn = $contentEn; return $this; }
+
+    public function getCreatedBy(): ?User { return $this->createdBy; }
+    public function setCreatedBy(?User $createdBy): static { $this->createdBy = $createdBy; return $this; }
 }

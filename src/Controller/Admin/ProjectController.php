@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Project;
 use App\Repository\ProjectRepository;
+use App\Service\LocaleHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,6 +15,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/admin/projects')]
 class ProjectController extends AbstractController
 {
+    public function __construct(
+        private LocaleHelper $localeHelper,
+    ) {
+    }
     #[Route('', name: 'admin_projects_list', methods: ['GET'])]
     public function index(ProjectRepository $projectRepository): JsonResponse
     {
@@ -38,10 +43,14 @@ class ProjectController extends AbstractController
         }
 
         $project = new Project();
+        $project->setCreatedBy($this->getUser());
         $project->setTitle($data['title']);
+        $project->setTitleEn($data['titleEn'] ?? null);
         $project->setDescription($data['description'] ?? null);
+        $project->setDescriptionEn($data['descriptionEn'] ?? null);
         $project->setImage($data['image'] ?? null);
         $project->setLocation($data['location']);
+        $project->setLocationEn($data['locationEn'] ?? null);
         $project->setBudget($data['budget'] ?? null);
         $project->setStatus($data['status'] ?? 'planned');
 
@@ -72,9 +81,12 @@ class ProjectController extends AbstractController
         }
 
         if (isset($data['title'])) $project->setTitle($data['title']);
+        if (isset($data['titleEn'])) $project->setTitleEn($data['titleEn']);
         if (isset($data['description'])) $project->setDescription($data['description']);
+        if (isset($data['descriptionEn'])) $project->setDescriptionEn($data['descriptionEn']);
         if (isset($data['image'])) $project->setImage($data['image']);
         if (isset($data['location'])) $project->setLocation($data['location']);
+        if (isset($data['locationEn'])) $project->setLocationEn($data['locationEn']);
         if (isset($data['budget'])) $project->setBudget($data['budget']);
         if (isset($data['status'])) $project->setStatus($data['status']);
         if (isset($data['startDate'])) {
@@ -101,16 +113,23 @@ class ProjectController extends AbstractController
     {
         return [
             'id' => $project->getId(),
-            'title' => $project->getTitle(),
-            'description' => $project->getDescription(),
+            'title' => $this->localeHelper->localize($project, 'title'),
+            'titleEn' => $project->getTitleEn(),
+            'description' => $this->localeHelper->localize($project, 'description'),
+            'descriptionEn' => $project->getDescriptionEn(),
             'image' => $project->getImage(),
-            'location' => $project->getLocation(),
+            'location' => $this->localeHelper->localize($project, 'location'),
+            'locationEn' => $project->getLocationEn(),
             'budget' => $project->getBudget(),
             'startDate' => $project->getStartDate()?->format('Y-m-d'),
             'endDate' => $project->getEndDate()?->format('Y-m-d'),
             'status' => $project->getStatus(),
             'createdAt' => $project->getCreatedAt()?->format('c'),
             'updatedAt' => $project->getUpdatedAt()?->format('c'),
+            'createdBy' => $project->getCreatedBy() ? [
+                'id' => $project->getCreatedBy()->getId(),
+                'name' => trim(($project->getCreatedBy()->getFirstName() ?? '') . ' ' . ($project->getCreatedBy()->getLastName() ?? '')),
+            ] : null,
         ];
     }
 }

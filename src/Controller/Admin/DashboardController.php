@@ -6,6 +6,7 @@ use App\Entity\Document;
 use App\Entity\Event;
 use App\Entity\Gallery;
 use App\Entity\News;
+use App\Entity\Newsletter;
 use App\Entity\Partner;
 use App\Entity\Project;
 use App\Entity\Testimonial;
@@ -29,6 +30,7 @@ class DashboardController extends AbstractController
             'totalGallery' => (int) $em->createQuery('SELECT COUNT(g) FROM ' . Gallery::class . ' g')->getSingleScalarResult(),
             'totalTestimonials' => (int) $em->createQuery('SELECT COUNT(t) FROM ' . Testimonial::class . ' t')->getSingleScalarResult(),
             'totalDocuments' => (int) $em->createQuery('SELECT COUNT(d) FROM ' . Document::class . ' d')->getSingleScalarResult(),
+            'totalSubscribers' => (int) $em->createQuery('SELECT COUNT(n) FROM ' . Newsletter::class . ' n')->getSingleScalarResult(),
         ];
 
         $recentEvents = array_map(fn (Event $e) => [

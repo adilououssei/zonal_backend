@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Event;
 use App\Repository\EventRepository;
+use App\Service\LocaleHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,6 +15,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/admin/events')]
 class EventController extends AbstractController
 {
+    public function __construct(
+        private LocaleHelper $localeHelper,
+    ) {
+    }
     #[Route('', name: 'admin_events_list', methods: ['GET'])]
     public function index(EventRepository $eventRepository): JsonResponse
     {
@@ -38,9 +43,15 @@ class EventController extends AbstractController
         }
 
         $event = new Event();
+        $event->setCreatedBy($this->getUser());
         $event->setTitle($data['title']);
+        $event->setTitleEn($data['titleEn'] ?? null);
         $event->setDescription($data['description'] ?? null);
+        $event->setDescriptionEn($data['descriptionEn'] ?? null);
         $event->setLocation($data['location']);
+        $event->setLocationEn($data['locationEn'] ?? null);
+        $event->setCategory($data['category'] ?? null);
+        $event->setCategoryEn($data['categoryEn'] ?? null);
         $event->setTime($data['time'] ?? null);
         $event->setCoverImage($data['coverImage'] ?? null);
         $event->setGallery($data['gallery'] ?? null);
@@ -69,8 +80,13 @@ class EventController extends AbstractController
         }
 
         if (isset($data['title'])) $event->setTitle($data['title']);
+        if (isset($data['titleEn'])) $event->setTitleEn($data['titleEn']);
         if (isset($data['description'])) $event->setDescription($data['description']);
+        if (isset($data['descriptionEn'])) $event->setDescriptionEn($data['descriptionEn']);
         if (isset($data['location'])) $event->setLocation($data['location']);
+        if (isset($data['locationEn'])) $event->setLocationEn($data['locationEn']);
+        if (isset($data['category'])) $event->setCategory($data['category']);
+        if (isset($data['categoryEn'])) $event->setCategoryEn($data['categoryEn']);
         if (isset($data['time'])) $event->setTime($data['time']);
         if (isset($data['coverImage'])) $event->setCoverImage($data['coverImage']);
         if (isset($data['gallery'])) $event->setGallery($data['gallery']);
@@ -107,19 +123,28 @@ class EventController extends AbstractController
 
         return [
             'id' => $event->getId(),
-            'title' => $event->getTitle(),
-            'description' => $event->getDescription(),
+            'title' => $this->localeHelper->localize($event, 'title'),
+            'titleEn' => $event->getTitleEn(),
+            'description' => $this->localeHelper->localize($event, 'description'),
+            'descriptionEn' => $event->getDescriptionEn(),
             'date' => $date?->format('Y-m-d'),
             'day' => $date?->format('d'),
             'month' => $this->formatMonth($date?->format('n')),
             'year' => $date?->format('Y'),
             'time' => $event->getTime(),
-            'location' => $event->getLocation(),
+            'location' => $this->localeHelper->localize($event, 'location'),
+            'locationEn' => $event->getLocationEn(),
+            'category' => $event->getCategory(),
+            'categoryEn' => $event->getCategoryEn(),
             'status' => $event->getStatus(),
             'coverImage' => $event->getCoverImage(),
             'gallery' => $event->getGallery(),
             'createdAt' => $event->getCreatedAt()?->format('c'),
             'updatedAt' => $event->getUpdatedAt()?->format('c'),
+            'createdBy' => $event->getCreatedBy() ? [
+                'id' => $event->getCreatedBy()->getId(),
+                'name' => trim(($event->getCreatedBy()->getFirstName() ?? '') . ' ' . ($event->getCreatedBy()->getLastName() ?? '')),
+            ] : null,
         ];
     }
 

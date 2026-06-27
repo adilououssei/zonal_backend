@@ -12,6 +12,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Partner
 {
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $createdBy = null;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -35,6 +38,12 @@ class Partner
 
     #[ORM\Column(length: 20, options: ['default' => 'active'])]
     private string $status = 'active';
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $nameEn = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $domainEn = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
@@ -69,4 +78,12 @@ class Partner
     public function setStatus(string $status): static { $this->status = $status; return $this; }
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
+
+    public function getNameEn(): ?string { return $this->nameEn; }
+    public function setNameEn(?string $nameEn): static { $this->nameEn = $nameEn; return $this; }
+    public function getDomainEn(): ?string { return $this->domainEn; }
+    public function setDomainEn(?string $domainEn): static { $this->domainEn = $domainEn; return $this; }
+
+    public function getCreatedBy(): ?User { return $this->createdBy; }
+    public function setCreatedBy(?User $createdBy): static { $this->createdBy = $createdBy; return $this; }
 }

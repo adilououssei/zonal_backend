@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\News;
 use App\Repository\NewsRepository;
+use App\Service\LocaleHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,6 +13,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/news')]
 class NewsController extends AbstractController
 {
+    public function __construct(
+        private LocaleHelper $localeHelper,
+    ) {
+    }
     #[Route('', name: 'public_news_list', methods: ['GET'])]
     public function index(NewsRepository $newsRepository): JsonResponse
     {
@@ -34,12 +39,12 @@ class NewsController extends AbstractController
 
         return [
             'id' => $news->getId(),
-            'title' => $news->getTitle(),
-            'excerpt' => $news->getExcerpt(),
-            'content' => $news->getContent(),
+            'title' => $this->localeHelper->localize($news, 'title'),
+            'excerpt' => $this->localeHelper->localize($news, 'excerpt'),
+            'content' => $this->localeHelper->localize($news, 'content'),
             'date' => $date?->format('Y-m-d'),
-            'category' => $news->getCategory(),
-            'author' => $news->getAuthor(),
+            'category' => $this->localeHelper->localize($news, 'category'),
+            'author' => $this->localeHelper->localize($news, 'author'),
             'image' => $news->getCoverImage(),
             'gallery' => $news->getGallery(),
             'views' => $news->getViews(),

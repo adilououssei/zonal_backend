@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Gallery;
 use App\Repository\GalleryRepository;
+use App\Service\LocaleHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,6 +15,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/admin/gallery')]
 class GalleryController extends AbstractController
 {
+    public function __construct(
+        private LocaleHelper $localeHelper,
+    ) {
+    }
     #[Route('', name: 'admin_gallery_list', methods: ['GET'])]
     public function index(GalleryRepository $galleryRepository): JsonResponse
     {
@@ -38,9 +43,12 @@ class GalleryController extends AbstractController
         }
 
         $gallery = new Gallery();
+        $gallery->setCreatedBy($this->getUser());
         $gallery->setTitle($data['title']);
+        $gallery->setTitleEn($data['titleEn'] ?? null);
         $gallery->setSrc($data['src']);
         $gallery->setCategory($data['category'] ?? '');
+        $gallery->setImages($data['images'] ?? null);
 
         if (!empty($data['date'])) {
             try {
@@ -64,11 +72,13 @@ class GalleryController extends AbstractController
         }
 
         if (isset($data['title'])) $gallery->setTitle($data['title']);
+        if (isset($data['titleEn'])) $gallery->setTitleEn($data['titleEn']);
         if (isset($data['src'])) $gallery->setSrc($data['src']);
         if (isset($data['category'])) $gallery->setCategory($data['category']);
         if (isset($data['date'])) {
             try { $gallery->setDate(new \DateTimeImmutable($data['date'])); } catch (\Exception) {}
         }
+        if (array_key_exists('images', $data)) $gallery->setImages($data['images']);
 
         $em->flush();
 
@@ -85,14 +95,22 @@ class GalleryController extends AbstractController
 
     private function serialize(Gallery $gallery): array
     {
+        $images = $gallery->getImages();
         return [
             'id' => $gallery->getId(),
-            'title' => $gallery->getTitle(),
+            'title' => $this->localeHelper->localize($gallery, 'title'),
+            'titleEn' => $gallery->getTitleEn(),
             'src' => $gallery->getSrc(),
             'category' => $gallery->getCategory(),
             'date' => $gallery->getDate()?->format('Y-m-d'),
+            'images' => $images,
+            'imageCount' => $images ? count($images) : 1,
             'createdAt' => $gallery->getCreatedAt()?->format('c'),
             'updatedAt' => $gallery->getUpdatedAt()?->format('c'),
+            'createdBy' => $gallery->getCreatedBy() ? [
+                'id' => $gallery->getCreatedBy()->getId(),
+                'name' => trim(($gallery->getCreatedBy()->getFirstName() ?? '') . ' ' . ($gallery->getCreatedBy()->getLastName() ?? '')),
+            ] : null,
         ];
     }
 }

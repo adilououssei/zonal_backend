@@ -32,7 +32,12 @@ security:
         - { path: ^/api/partners, roles: PUBLIC_ACCESS }
         - { path: ^/api/testimonials, roles: PUBLIC_ACCESS }
         - { path: ^/api/documents, roles: PUBLIC_ACCESS }
-        - { path: ^/api/admin, roles: ROLE_ADMIN }
+        - { path: ^/api/newsletter, roles: PUBLIC_ACCESS }
+        - { path: ^/api/forgot-password, roles: PUBLIC_ACCESS }
+        - { path: ^/api/reset-password, roles: PUBLIC_ACCESS }
+        - { path: ^/api/contact, roles: PUBLIC_ACCESS }
+        - { path: ^/api/stats, roles: PUBLIC_ACCESS }
+        - { path: ^/api/admin, roles: ROLE_USER }
         - { path: ^/api, roles: ROLE_USER }
 
 when@test:

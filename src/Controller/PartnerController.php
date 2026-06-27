@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Partner;
 use App\Repository\PartnerRepository;
+use App\Service\LocaleHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -11,6 +12,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/partners')]
 class PartnerController extends AbstractController
 {
+    public function __construct(
+        private LocaleHelper $localeHelper,
+    ) {
+    }
     #[Route('', name: 'public_partners_list', methods: ['GET'])]
     public function index(PartnerRepository $partnerRepository): JsonResponse
     {
@@ -23,8 +28,8 @@ class PartnerController extends AbstractController
     {
         return [
             'id' => $partner->getId(),
-            'name' => $partner->getName(),
-            'domain' => $partner->getDomain(),
+            'name' => $this->localeHelper->localize($partner, 'name'),
+            'domain' => $this->localeHelper->localize($partner, 'domain'),
             'email' => $partner->getEmail(),
             'phone' => $partner->getPhone(),
             'logo' => $partner->getLogo(),

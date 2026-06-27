@@ -38,6 +38,7 @@ class DocumentController extends AbstractController
         }
 
         $document = new Document();
+        $document->setCreatedBy($this->getUser());
         $document->setName($data['name']);
         $document->setType($data['type'] ?? 'PDF');
         $document->setSize($data['size'] ?? null);
@@ -94,6 +95,10 @@ class DocumentController extends AbstractController
             'date' => $document->getDate()?->format('Y-m-d'),
             'createdAt' => $document->getCreatedAt()?->format('c'),
             'updatedAt' => $document->getUpdatedAt()?->format('c'),
+            'createdBy' => $document->getCreatedBy() ? [
+                'id' => $document->getCreatedBy()->getId(),
+                'name' => trim(($document->getCreatedBy()->getFirstName() ?? '') . ' ' . ($document->getCreatedBy()->getLastName() ?? '')),
+            ] : null,
         ];
     }
 }

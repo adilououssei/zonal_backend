@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Partner;
 use App\Repository\PartnerRepository;
+use App\Service\LocaleHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,6 +15,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/admin/partners')]
 class PartnerController extends AbstractController
 {
+    public function __construct(
+        private LocaleHelper $localeHelper,
+    ) {
+    }
     #[Route('', name: 'admin_partners_list', methods: ['GET'])]
     public function index(PartnerRepository $partnerRepository): JsonResponse
     {
@@ -38,8 +43,11 @@ class PartnerController extends AbstractController
         }
 
         $partner = new Partner();
+        $partner->setCreatedBy($this->getUser());
         $partner->setName($data['name']);
+        $partner->setNameEn($data['nameEn'] ?? null);
         $partner->setDomain($data['domain'] ?? null);
+        $partner->setDomainEn($data['domainEn'] ?? null);
         $partner->setEmail($data['email'] ?? null);
         $partner->setPhone($data['phone'] ?? null);
         $partner->setLogo($data['logo'] ?? null);
@@ -61,7 +69,9 @@ class PartnerController extends AbstractController
         }
 
         if (isset($data['name'])) $partner->setName($data['name']);
+        if (isset($data['nameEn'])) $partner->setNameEn($data['nameEn']);
         if (isset($data['domain'])) $partner->setDomain($data['domain']);
+        if (isset($data['domainEn'])) $partner->setDomainEn($data['domainEn']);
         if (isset($data['email'])) $partner->setEmail($data['email']);
         if (isset($data['phone'])) $partner->setPhone($data['phone']);
         if (isset($data['logo'])) $partner->setLogo($data['logo']);
@@ -92,14 +102,20 @@ class PartnerController extends AbstractController
     {
         return [
             'id' => $partner->getId(),
-            'name' => $partner->getName(),
-            'domain' => $partner->getDomain(),
+            'name' => $this->localeHelper->localize($partner, 'name'),
+            'nameEn' => $partner->getNameEn(),
+            'domain' => $this->localeHelper->localize($partner, 'domain'),
+            'domainEn' => $partner->getDomainEn(),
             'email' => $partner->getEmail(),
             'phone' => $partner->getPhone(),
             'logo' => $partner->getLogo(),
             'status' => $partner->getStatus(),
             'createdAt' => $partner->getCreatedAt()?->format('c'),
             'updatedAt' => $partner->getUpdatedAt()?->format('c'),
+            'createdBy' => $partner->getCreatedBy() ? [
+                'id' => $partner->getCreatedBy()->getId(),
+                'name' => trim(($partner->getCreatedBy()->getFirstName() ?? '') . ' ' . ($partner->getCreatedBy()->getLastName() ?? '')),
+            ] : null,
         ];
     }
 }

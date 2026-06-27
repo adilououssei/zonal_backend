@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Role;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -57,6 +58,11 @@ class UserController extends AbstractController
         $user->setPhone($data['phone'] ?? null);
         $user->setIsActive($data['isActive'] ?? true);
 
+        if (!empty($data['roleId'])) {
+            $role = $em->getRepository(Role::class)->find($data['roleId']);
+            if ($role) $user->setRole($role);
+        }
+
         $errors = $validator->validate($user);
         if (count($errors) > 0) {
             return $this->json(['error' => (string) $errors], Response::HTTP_BAD_REQUEST);
@@ -99,6 +105,11 @@ class UserController extends AbstractController
         if (isset($data['lastName'])) $user->setLastName($data['lastName']);
         if (isset($data['phone'])) $user->setPhone($data['phone']);
         if (isset($data['isActive'])) $user->setIsActive((bool) $data['isActive']);
+
+        if (isset($data['roleId'])) {
+            $role = $data['roleId'] ? $em->getRepository(Role::class)->find($data['roleId']) : null;
+            $user->setRole($role);
+        }
 
         $errors = $validator->validate($user);
         if (count($errors) > 0) {
@@ -148,6 +159,11 @@ class UserController extends AbstractController
             'avatar' => $user->getAvatar(),
             'roles' => $user->getRoles(),
             'role' => $this->formatRoleName($user->getRoles()),
+            'roleEntity' => $user->getRole() ? [
+                'id' => $user->getRole()->getId(),
+                'name' => $user->getRole()->getName(),
+                'permissions' => $user->getRole()->getPermissions(),
+            ] : null,
             'isActive' => $user->isActive(),
             'status' => $user->isActive() ? 'Actif' : 'Inactif',
             'lastLogin' => $user->getLastLoginAt()?->format('d/m/Y H:i') ?? null,

@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Testimonial;
 use App\Repository\TestimonialRepository;
+use App\Service\LocaleHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,6 +15,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/admin/testimonials')]
 class TestimonialController extends AbstractController
 {
+    public function __construct(
+        private LocaleHelper $localeHelper,
+    ) {
+    }
     #[Route('', name: 'admin_testimonials_list', methods: ['GET'])]
     public function index(TestimonialRepository $testimonialRepository): JsonResponse
     {
@@ -38,9 +43,13 @@ class TestimonialController extends AbstractController
         }
 
         $testimonial = new Testimonial();
+        $testimonial->setCreatedBy($this->getUser());
         $testimonial->setAuthor($data['author']);
+        $testimonial->setAuthorEn($data['authorEn'] ?? null);
         $testimonial->setRole($data['role'] ?? null);
+        $testimonial->setRoleEn($data['roleEn'] ?? null);
         $testimonial->setContent($data['content']);
+        $testimonial->setContentEn($data['contentEn'] ?? null);
         $testimonial->setRating($data['rating'] ?? 5);
         $testimonial->setAvatar($data['avatar'] ?? null);
         if (isset($data['date'])) {
@@ -64,8 +73,11 @@ class TestimonialController extends AbstractController
         }
 
         if (isset($data['author'])) $testimonial->setAuthor($data['author']);
+        if (isset($data['authorEn'])) $testimonial->setAuthorEn($data['authorEn']);
         if (isset($data['role'])) $testimonial->setRole($data['role']);
+        if (isset($data['roleEn'])) $testimonial->setRoleEn($data['roleEn']);
         if (isset($data['content'])) $testimonial->setContent($data['content']);
+        if (isset($data['contentEn'])) $testimonial->setContentEn($data['contentEn']);
         if (isset($data['rating'])) $testimonial->setRating($data['rating']);
         if (isset($data['avatar'])) $testimonial->setAvatar($data['avatar']);
         if (isset($data['date'])) $testimonial->setDate(new \DateTimeImmutable($data['date']));
@@ -88,15 +100,22 @@ class TestimonialController extends AbstractController
     {
         return [
             'id' => $testimonial->getId(),
-            'author' => $testimonial->getAuthor(),
-            'role' => $testimonial->getRole(),
-            'content' => $testimonial->getContent(),
+            'author' => $this->localeHelper->localize($testimonial, 'author'),
+            'authorEn' => $testimonial->getAuthorEn(),
+            'role' => $this->localeHelper->localize($testimonial, 'role'),
+            'roleEn' => $testimonial->getRoleEn(),
+            'content' => $this->localeHelper->localize($testimonial, 'content'),
+            'contentEn' => $testimonial->getContentEn(),
             'rating' => $testimonial->getRating(),
             'avatar' => $testimonial->getAvatar(),
             'date' => $testimonial->getDate()?->format('Y-m-d'),
             'status' => $testimonial->getStatus(),
             'createdAt' => $testimonial->getCreatedAt()?->format('c'),
             'updatedAt' => $testimonial->getUpdatedAt()?->format('c'),
+            'createdBy' => $testimonial->getCreatedBy() ? [
+                'id' => $testimonial->getCreatedBy()->getId(),
+                'name' => trim(($testimonial->getCreatedBy()->getFirstName() ?? '') . ' ' . ($testimonial->getCreatedBy()->getLastName() ?? '')),
+            ] : null,
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Project;
 use App\Repository\ProjectRepository;
+use App\Service\LocaleHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -11,10 +12,22 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/projects')]
 class ProjectController extends AbstractController
 {
+    public function __construct(
+        private LocaleHelper $localeHelper,
+    ) {
+    }
     #[Route('', name: 'public_projects_list', methods: ['GET'])]
     public function index(ProjectRepository $projectRepository): JsonResponse
     {
         $projects = $projectRepository->findAllOrderedByDate('DESC');
+        $data = array_map(fn (Project $p) => $this->serializeProject($p), $projects);
+        return $this->json($data);
+    }
+
+    #[Route('/completed', name: 'public_projects_completed', methods: ['GET'])]
+    public function completed(ProjectRepository $projectRepository): JsonResponse
+    {
+        $projects = $projectRepository->findByStatus('completed');
         $data = array_map(fn (Project $p) => $this->serializeProject($p), $projects);
         return $this->json($data);
     }
@@ -29,10 +42,10 @@ class ProjectController extends AbstractController
     {
         return [
             'id' => $project->getId(),
-            'title' => $project->getTitle(),
-            'description' => $project->getDescription(),
+            'title' => $this->localeHelper->localize($project, 'title'),
+            'description' => $this->localeHelper->localize($project, 'description'),
             'image' => $project->getImage(),
-            'location' => $project->getLocation(),
+            'location' => $this->localeHelper->localize($project, 'location'),
             'startDate' => $project->getStartDate()?->format('Y-m-d'),
             'endDate' => $project->getEndDate()?->format('Y-m-d'),
             'status' => $project->getStatus(),

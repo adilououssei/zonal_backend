@@ -12,6 +12,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Event
 {
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $createdBy = null;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -43,6 +46,21 @@ class Event
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $gallery = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $titleEn = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $descriptionEn = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $locationEn = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $category = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $categoryEn = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
@@ -164,4 +182,20 @@ class Event
     {
         return $this->updatedAt;
     }
+
+    public function getTitleEn(): ?string { return $this->titleEn; }
+    public function setTitleEn(?string $titleEn): static { $this->titleEn = $titleEn; return $this; }
+    public function getDescriptionEn(): ?string { return $this->descriptionEn; }
+    public function setDescriptionEn(?string $descriptionEn): static { $this->descriptionEn = $descriptionEn; return $this; }
+    public function getLocationEn(): ?string { return $this->locationEn; }
+    public function setLocationEn(?string $locationEn): static { $this->locationEn = $locationEn; return $this; }
+
+    public function getCategory(): ?string { return $this->category; }
+    public function setCategory(?string $category): static { $this->category = $category; return $this; }
+
+    public function getCategoryEn(): ?string { return $this->categoryEn; }
+    public function setCategoryEn(?string $categoryEn): static { $this->categoryEn = $categoryEn; return $this; }
+
+    public function getCreatedBy(): ?User { return $this->createdBy; }
+    public function setCreatedBy(?User $createdBy): static { $this->createdBy = $createdBy; return $this; }
 }

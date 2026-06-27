@@ -18,44 +18,6 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        $admin = new User();
-        $admin->setEmail('admin@zonalong.org');
-        $admin->setPassword(
-            $this->passwordHasher->hashPassword($admin, 'admin123')
-        );
-        $admin->setRoles(['ROLE_SUPER_ADMIN', 'ROLE_ADMIN']);
-        $admin->setFirstName('Super');
-        $admin->setLastName('Admin');
-        $admin->setPhone('+235 66 00 00 00');
-        $admin->setIsActive(true);
-        $admin->setLastLoginAt(new \DateTimeImmutable('2024-06-02 08:30:00'));
-        $manager->persist($admin);
-
-        $editorUser = new User();
-        $editorUser->setEmail('editeur@zonalong.org');
-        $editorUser->setPassword(
-            $this->passwordHasher->hashPassword($editorUser, 'editor123')
-        );
-        $editorUser->setRoles(['ROLE_ADMIN']);
-        $editorUser->setFirstName('Jean');
-        $editorUser->setLastName('Martin');
-        $editorUser->setPhone('+235 66 11 23 33');
-        $editorUser->setIsActive(true);
-        $editorUser->setLastLoginAt(new \DateTimeImmutable('2024-06-01 14:20:00'));
-        $manager->persist($editorUser);
-
-        $viewerUser = new User();
-        $viewerUser->setEmail('lecteur@zonalong.org');
-        $viewerUser->setPassword(
-            $this->passwordHasher->hashPassword($viewerUser, 'lecteur123')
-        );
-        $viewerUser->setRoles(['ROLE_USER']);
-        $viewerUser->setFirstName('Aïssata');
-        $viewerUser->setLastName('Brahim');
-        $viewerUser->setPhone('+235 66 22 33 44');
-        $viewerUser->setIsActive(true);
-        $manager->persist($viewerUser);
-
         $superAdminRole = new Role();
         $superAdminRole->setName('Super Administrateur');
         $superAdminRole->setPermissions([
@@ -85,6 +47,47 @@ class AppFixtures extends Fixture
             'roles' => false, 'settings' => false,
         ]);
         $manager->persist($editorRole);
+
+        $admin = new User();
+        $admin->setEmail('admin@zonalong.org');
+        $admin->setPassword(
+            $this->passwordHasher->hashPassword($admin, 'admin123')
+        );
+        $admin->setRoles(['ROLE_SUPER_ADMIN', 'ROLE_ADMIN']);
+        $admin->setRole($superAdminRole);
+        $admin->setFirstName('Super');
+        $admin->setLastName('Admin');
+        $admin->setPhone('+235 66 00 00 00');
+        $admin->setIsActive(true);
+        $admin->setLastLoginAt(new \DateTimeImmutable('2024-06-02 08:30:00'));
+        $manager->persist($admin);
+
+        $editorUser = new User();
+        $editorUser->setEmail('editeur@zonalong.org');
+        $editorUser->setPassword(
+            $this->passwordHasher->hashPassword($editorUser, 'editor123')
+        );
+        $editorUser->setRoles(['ROLE_ADMIN']);
+        $editorUser->setRole($adminRole);
+        $editorUser->setFirstName('Jean');
+        $editorUser->setLastName('Martin');
+        $editorUser->setPhone('+235 66 11 23 33');
+        $editorUser->setIsActive(true);
+        $editorUser->setLastLoginAt(new \DateTimeImmutable('2024-06-01 14:20:00'));
+        $manager->persist($editorUser);
+
+        $viewerUser = new User();
+        $viewerUser->setEmail('lecteur@zonalong.org');
+        $viewerUser->setPassword(
+            $this->passwordHasher->hashPassword($viewerUser, 'lecteur123')
+        );
+        $viewerUser->setRoles(['ROLE_USER']);
+        $viewerUser->setRole($editorRole);
+        $viewerUser->setFirstName('Aïssata');
+        $viewerUser->setLastName('Brahim');
+        $viewerUser->setPhone('+235 66 22 33 44');
+        $viewerUser->setIsActive(true);
+        $manager->persist($viewerUser);
 
         $event1 = new Event();
         $event1->setTitle("Journée mondiale de l'environnement");

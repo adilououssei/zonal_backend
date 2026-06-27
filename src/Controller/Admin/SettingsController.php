@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Settings;
 use App\Repository\SettingsRepository;
+use App\Service\LocaleHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,6 +15,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/admin/settings')]
 class SettingsController extends AbstractController
 {
+    public function __construct(
+        private LocaleHelper $localeHelper,
+    ) {
+    }
     #[Route('', name: 'admin_settings_get', methods: ['GET'])]
     public function getSettings(SettingsRepository $repo, EntityManagerInterface $em): JsonResponse
     {
@@ -42,9 +47,12 @@ class SettingsController extends AbstractController
 
         // General
         if (isset($data['orgName'])) $settings->setOrgName($data['orgName']);
+        if (isset($data['orgNameEn'])) $settings->setOrgNameEn($data['orgNameEn']);
         if (isset($data['logo'])) $settings->setLogo($data['logo']);
         if (isset($data['slogan'])) $settings->setSlogan($data['slogan']);
+        if (isset($data['sloganEn'])) $settings->setSloganEn($data['sloganEn']);
         if (isset($data['description'])) $settings->setDescription($data['description']);
+        if (isset($data['descriptionEn'])) $settings->setDescriptionEn($data['descriptionEn']);
         if (isset($data['email'])) $settings->setEmail($data['email']);
         if (isset($data['phone'])) $settings->setPhone($data['phone']);
 
@@ -64,7 +72,9 @@ class SettingsController extends AbstractController
 
         // Footer
         if (isset($data['footerPresentation'])) $settings->setFooterPresentation($data['footerPresentation']);
+        if (isset($data['footerPresentationEn'])) $settings->setFooterPresentationEn($data['footerPresentationEn']);
         if (isset($data['copyright'])) $settings->setCopyright($data['copyright']);
+        if (isset($data['copyrightEn'])) $settings->setCopyrightEn($data['copyrightEn']);
         if (isset($data['openingHours'])) $settings->setOpeningHours($data['openingHours']);
         if (isset($data['legalLink'])) $settings->setLegalLink($data['legalLink']);
         if (isset($data['privacyLink'])) $settings->setPrivacyLink($data['privacyLink']);
@@ -90,10 +100,13 @@ class SettingsController extends AbstractController
     private function serialize(Settings $s): array
     {
         return [
-            'orgName' => $s->getOrgName(),
+            'orgName' => $this->localeHelper->localize($s, 'orgName'),
+            'orgNameEn' => $s->getOrgNameEn(),
             'logo' => $s->getLogo(),
-            'slogan' => $s->getSlogan(),
-            'description' => $s->getDescription(),
+            'slogan' => $this->localeHelper->localize($s, 'slogan'),
+            'sloganEn' => $s->getSloganEn(),
+            'description' => $this->localeHelper->localize($s, 'description'),
+            'descriptionEn' => $s->getDescriptionEn(),
             'email' => $s->getEmail(),
             'phone' => $s->getPhone(),
 
@@ -109,8 +122,10 @@ class SettingsController extends AbstractController
             'youtube' => $s->getYoutube(),
             'whatsappUrl' => $s->getWhatsappUrl(),
 
-            'footerPresentation' => $s->getFooterPresentation(),
-            'copyright' => $s->getCopyright(),
+            'footerPresentation' => $this->localeHelper->localize($s, 'footerPresentation'),
+            'footerPresentationEn' => $s->getFooterPresentationEn(),
+            'copyright' => $this->localeHelper->localize($s, 'copyright'),
+            'copyrightEn' => $s->getCopyrightEn(),
             'openingHours' => $s->getOpeningHours(),
             'legalLink' => $s->getLegalLink(),
             'privacyLink' => $s->getPrivacyLink(),

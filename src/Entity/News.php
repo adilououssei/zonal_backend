@@ -12,6 +12,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class News
 {
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $createdBy = null;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -46,6 +49,21 @@ class News
 
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     private int $views = 0;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $titleEn = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $excerptEn = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $contentEn = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $authorEn = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $categoryEn = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
@@ -86,4 +104,18 @@ class News
     public function setViews(int $views): static { $this->views = $views; return $this; }
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
+
+    public function getTitleEn(): ?string { return $this->titleEn; }
+    public function setTitleEn(?string $titleEn): static { $this->titleEn = $titleEn; return $this; }
+    public function getExcerptEn(): ?string { return $this->excerptEn; }
+    public function setExcerptEn(?string $excerptEn): static { $this->excerptEn = $excerptEn; return $this; }
+    public function getContentEn(): ?string { return $this->contentEn; }
+    public function setContentEn(?string $contentEn): static { $this->contentEn = $contentEn; return $this; }
+    public function getAuthorEn(): ?string { return $this->authorEn; }
+    public function setAuthorEn(?string $authorEn): static { $this->authorEn = $authorEn; return $this; }
+    public function getCategoryEn(): ?string { return $this->categoryEn; }
+    public function setCategoryEn(?string $categoryEn): static { $this->categoryEn = $categoryEn; return $this; }
+
+    public function getCreatedBy(): ?User { return $this->createdBy; }
+    public function setCreatedBy(?User $createdBy): static { $this->createdBy = $createdBy; return $this; }
 }

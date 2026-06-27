@@ -55,6 +55,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Role $role = null;
+
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $passwordResetToken = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $passwordResetExpiresAt = null;
+
+    public function getRole(): ?Role { return $this->role; }
+    public function setRole(?Role $role): static { $this->role = $role; return $this; }
+
+    public function getPasswordResetToken(): ?string { return $this->passwordResetToken; }
+    public function setPasswordResetToken(?string $token): static { $this->passwordResetToken = $token; return $this; }
+
+    public function getPasswordResetExpiresAt(): ?\DateTimeImmutable { return $this->passwordResetExpiresAt; }
+    public function setPasswordResetExpiresAt(?\DateTimeImmutable $date): static { $this->passwordResetExpiresAt = $date; return $this; }
+
+    public function isPasswordResetTokenValid(): bool
+    {
+        return $this->passwordResetToken !== null
+            && $this->passwordResetExpiresAt !== null
+            && $this->passwordResetExpiresAt > new \DateTimeImmutable();
+    }
+
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {

@@ -114,6 +114,21 @@ class Settings
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $googleAnalyticsId = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $orgNameEn = null;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $sloganEn = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $descriptionEn = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $footerPresentationEn = null;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $copyrightEn = null;
+
     public function getId(): ?int { return $this->id; }
 
     // General
@@ -189,4 +204,16 @@ class Settings
     public function setOgImage(?string $v): static { $this->ogImage = $v; return $this; }
     public function getGoogleAnalyticsId(): ?string { return $this->googleAnalyticsId; }
     public function setGoogleAnalyticsId(?string $v): static { $this->googleAnalyticsId = $v; return $this; }
+
+    // English fields
+    public function getOrgNameEn(): ?string { return $this->orgNameEn; }
+    public function setOrgNameEn(?string $v): static { $this->orgNameEn = $v; return $this; }
+    public function getSloganEn(): ?string { return $this->sloganEn; }
+    public function setSloganEn(?string $v): static { $this->sloganEn = $v; return $this; }
+    public function getDescriptionEn(): ?string { return $this->descriptionEn; }
+    public function setDescriptionEn(?string $v): static { $this->descriptionEn = $v; return $this; }
+    public function getFooterPresentationEn(): ?string { return $this->footerPresentationEn; }
+    public function setFooterPresentationEn(?string $v): static { $this->footerPresentationEn = $v; return $this; }
+    public function getCopyrightEn(): ?string { return $this->copyrightEn; }
+    public function setCopyrightEn(?string $v): static { $this->copyrightEn = $v; return $this; }
 }

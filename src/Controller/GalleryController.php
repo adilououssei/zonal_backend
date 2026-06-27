@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Gallery;
 use App\Repository\GalleryRepository;
+use App\Service\LocaleHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -11,6 +12,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/gallery')]
 class GalleryController extends AbstractController
 {
+    public function __construct(
+        private LocaleHelper $localeHelper,
+    ) {
+    }
     #[Route('', name: 'public_gallery_list', methods: ['GET'])]
     public function index(GalleryRepository $galleryRepository): JsonResponse
     {
@@ -27,12 +32,15 @@ class GalleryController extends AbstractController
 
     private function serialize(Gallery $gallery): array
     {
+        $images = $gallery->getImages();
         return [
             'id' => $gallery->getId(),
-            'title' => $gallery->getTitle(),
+            'title' => $this->localeHelper->localize($gallery, 'title'),
             'src' => $gallery->getSrc(),
             'category' => $gallery->getCategory(),
             'date' => $gallery->getDate()?->format('Y-m-d'),
+            'images' => $images,
+            'imageCount' => $images ? count($images) : 1,
         ];
     }
 }

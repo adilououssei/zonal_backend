@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\EventRepository;
+use App\Service\LocaleHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -10,6 +11,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api/events')]
 class EventController extends AbstractController
 {
+    public function __construct(
+        private LocaleHelper $localeHelper,
+    ) {
+    }
     #[Route('', name: 'events_list', methods: ['GET'])]
     public function index(EventRepository $eventRepository): JsonResponse
     {
@@ -50,14 +55,15 @@ class EventController extends AbstractController
 
         return [
             'id' => $event->getId(),
-            'title' => $event->getTitle(),
-            'description' => $event->getDescription(),
+            'title' => $this->localeHelper->localize($event, 'title'),
+            'description' => $this->localeHelper->localize($event, 'description'),
             'date' => $date?->format('Y-m-d'),
             'day' => $date?->format('d'),
             'month' => $this->formatMonth($date?->format('n')),
             'year' => $date?->format('Y'),
             'time' => $event->getTime(),
-            'location' => $event->getLocation(),
+            'location' => $this->localeHelper->localize($event, 'location'),
+            'category' => $event->getCategory(),
             'status' => $this->computeStatusFromDate($date),
             'image' => $event->getCoverImage(),
             'gallery' => $event->getGallery(),

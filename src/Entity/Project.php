@@ -12,6 +12,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Project
 {
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $createdBy = null;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -42,6 +45,15 @@ class Project
 
     #[ORM\Column(length: 20, options: ['default' => 'planned'])]
     private string $status = 'planned';
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $titleEn = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $descriptionEn = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $locationEn = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
@@ -80,4 +92,14 @@ class Project
     public function setStatus(string $status): static { $this->status = $status; return $this; }
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
+
+    public function getTitleEn(): ?string { return $this->titleEn; }
+    public function setTitleEn(?string $titleEn): static { $this->titleEn = $titleEn; return $this; }
+    public function getDescriptionEn(): ?string { return $this->descriptionEn; }
+    public function setDescriptionEn(?string $descriptionEn): static { $this->descriptionEn = $descriptionEn; return $this; }
+    public function getLocationEn(): ?string { return $this->locationEn; }
+    public function setLocationEn(?string $locationEn): static { $this->locationEn = $locationEn; return $this; }
+
+    public function getCreatedBy(): ?User { return $this->createdBy; }
+    public function setCreatedBy(?User $createdBy): static { $this->createdBy = $createdBy; return $this; }
 }
