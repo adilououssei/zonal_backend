@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Event;
 use App\Repository\EventRepository;
 use App\Service\LocaleHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -49,7 +50,7 @@ class EventController extends AbstractController
         return $this->json($this->serializeEvent($event));
     }
 
-    private function serializeEvent($event): array
+    private function serializeEvent(Event $event): array
     {
         $date = $event->getDate();
 
