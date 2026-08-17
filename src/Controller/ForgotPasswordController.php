@@ -11,7 +11,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api')]
@@ -23,7 +25,12 @@ class ForgotPasswordController extends AbstractController
         UserRepository $repo,
         EntityManagerInterface $em,
         MailerInterface $mailer,
+        #[Autowire(service: 'limiter.public_form')] RateLimiterFactory $publicFormLimiter,
     ): JsonResponse {
+        if (!$publicFormLimiter->create($request->getClientIp())->consume(1)->isAccepted()) {
+            return $this->json(['error' => 'Trop de demandes. Réessayez plus tard.'], Response::HTTP_TOO_MANY_REQUESTS);
+        }
+
         $data = json_decode($request->getContent(), true);
         $email = $data['email'] ?? '';
 
@@ -63,7 +70,12 @@ class ForgotPasswordController extends AbstractController
         UserRepository $repo,
         EntityManagerInterface $em,
         UserPasswordHasherInterface $passwordHasher,
+        #[Autowire(service: 'limiter.login')] RateLimiterFactory $loginLimiter,
     ): JsonResponse {
+        if (!$loginLimiter->create($request->getClientIp())->consume(1)->isAccepted()) {
+            return $this->json(['error' => 'Trop de tentatives. Réessayez plus tard.'], Response::HTTP_TOO_MANY_REQUESTS);
+        }
+
         $data = json_decode($request->getContent(), true);
         $token = $data['token'] ?? '';
         $newPassword = $data['password'] ?? '';

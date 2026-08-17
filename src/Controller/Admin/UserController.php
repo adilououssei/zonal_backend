@@ -12,11 +12,27 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/users')]
+#[IsGranted('ROLE_SUPER_ADMIN')]
 class UserController extends AbstractController
 {
+    private const ASSIGNABLE_ROLES = ['ROLE_USER', 'ROLE_ADMIN', 'ROLE_SUPER_ADMIN'];
+
+    /**
+     * Ne garde que les rôles connus de l'application : empêche l'injection
+     * d'un rôle arbitraire même par un ROLE_SUPER_ADMIN via un payload malformé.
+     */
+    private function sanitizeRoles(mixed $roles): array
+    {
+        if (!is_array($roles)) {
+            return ['ROLE_USER'];
+        }
+        $roles = array_values(array_intersect(self::ASSIGNABLE_ROLES, $roles));
+        return $roles ?: ['ROLE_USER'];
+    }
     #[Route('', name: 'admin_users_list', methods: ['GET'])]
     public function index(UserRepository $userRepository): JsonResponse
     {
@@ -52,7 +68,7 @@ class UserController extends AbstractController
         $user = new User();
         $user->setEmail($data['email']);
         $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
-        $user->setRoles($data['roles'] ?? ['ROLE_USER']);
+        $user->setRoles($this->sanitizeRoles($data['roles'] ?? ['ROLE_USER']));
         $user->setFirstName($data['firstName'] ?? null);
         $user->setLastName($data['lastName'] ?? null);
         $user->setPhone($data['phone'] ?? null);
@@ -100,7 +116,7 @@ class UserController extends AbstractController
             $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
         }
 
-        if (isset($data['roles'])) $user->setRoles($data['roles']);
+        if (isset($data['roles'])) $user->setRoles($this->sanitizeRoles($data['roles']));
         if (isset($data['firstName'])) $user->setFirstName($data['firstName']);
         if (isset($data['lastName'])) $user->setLastName($data['lastName']);
         if (isset($data['phone'])) $user->setPhone($data['phone']);

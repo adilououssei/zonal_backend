@@ -11,8 +11,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/settings')]
+#[IsGranted('ROLE_SUPER_ADMIN')]
 class SettingsController extends AbstractController
 {
     public function __construct(

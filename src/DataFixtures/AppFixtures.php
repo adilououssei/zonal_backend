@@ -48,19 +48,9 @@ class AppFixtures extends Fixture
         ]);
         $manager->persist($editorRole);
 
-        $admin = new User();
-        $admin->setEmail('admin@zonalong.org');
-        $admin->setPassword(
-            $this->passwordHasher->hashPassword($admin, 'admin123')
-        );
-        $admin->setRoles(['ROLE_SUPER_ADMIN', 'ROLE_ADMIN']);
-        $admin->setRole($superAdminRole);
-        $admin->setFirstName('Super');
-        $admin->setLastName('Admin');
-        $admin->setPhone('+235 66 00 00 00');
-        $admin->setIsActive(true);
-        $admin->setLastLoginAt(new \DateTimeImmutable('2024-06-02 08:30:00'));
-        $manager->persist($admin);
+        // Le compte super administrateur n'est PAS créé ici : il doit être créé
+        // via `php bin/console app:create-super-admin` (voir src/Command/CreateSuperAdminCommand.php),
+        // pour éviter un mot de passe par défaut faible et prévisible en dur dans le code.
 
         $editorUser = new User();
         $editorUser->setEmail('editeur@zonalong.org');

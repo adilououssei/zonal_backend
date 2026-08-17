@@ -10,7 +10,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -24,7 +26,17 @@ class AuthController extends AbstractController
         UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $em,
+        #[Autowire(service: 'limiter.login')] RateLimiterFactory $loginLimiter,
     ): JsonResponse {
+        $limit = $loginLimiter->create($request->getClientIp())->consume(1);
+        if (!$limit->isAccepted()) {
+            return $this->json(
+                ['error' => 'Trop de tentatives. Réessayez plus tard.'],
+                Response::HTTP_TOO_MANY_REQUESTS,
+                ['Retry-After' => $limit->getRetryAfter()->getTimestamp() - time()],
+            );
+        }
+
         $data = json_decode($request->getContent(), true);
 
         if (!$data || empty($data['email']) || empty($data['password'])) {
@@ -87,7 +99,10 @@ class AuthController extends AbstractController
         $user = new User();
         $user->setEmail($data['email']);
         $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
-        $user->setRoles($data['roles'] ?? ['ROLE_USER']);
+        // Un utilisateur qui s'auto-enregistre ne peut jamais s'attribuer de rôle :
+        // le rôle de base est toujours ROLE_USER, l'élévation se fait uniquement
+        // via le back-office par un ROLE_SUPER_ADMIN (Admin\UserController).
+        $user->setRoles(['ROLE_USER']);
         $user->setFirstName($data['firstName'] ?? null);
         $user->setLastName($data['lastName'] ?? null);
 

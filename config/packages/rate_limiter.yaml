@@ -1,0 +1,12 @@
+framework:
+    rate_limiter:
+        # Anti brute-force sur /api/login : 5 tentatives / 15 min par IP.
+        login:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '15 minutes'
+        # Anti spam sur les formulaires publics (contact, newsletter, mot de passe oublié).
+        public_form:
+            policy: 'sliding_window'
+            limit: 10
+            interval: '1 hour'

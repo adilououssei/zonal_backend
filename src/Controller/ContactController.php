@@ -6,8 +6,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/contact')]
@@ -17,7 +19,12 @@ class ContactController extends AbstractController
     public function send(
         Request $request,
         MailerInterface $mailer,
+        #[Autowire(service: 'limiter.public_form')] RateLimiterFactory $publicFormLimiter,
     ): JsonResponse {
+        if (!$publicFormLimiter->create($request->getClientIp())->consume(1)->isAccepted()) {
+            return $this->json(['error' => 'Trop de messages envoyés. Réessayez plus tard.'], Response::HTTP_TOO_MANY_REQUESTS);
+        }
+
         $data = json_decode($request->getContent(), true);
         $name = trim($data['name'] ?? '');
         $email = trim($data['email'] ?? '');
