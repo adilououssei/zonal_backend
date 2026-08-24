@@ -13,6 +13,7 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
+    // Utilisé pour la connexion (l'email sert d'identifiant) et pour vérifier qu'un email n'est pas déjà pris
     public function findByEmail(string $email): ?User
     {
         return $this->findOneBy(['email' => $email]);

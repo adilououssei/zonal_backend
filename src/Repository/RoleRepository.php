@@ -6,6 +6,7 @@ use App\Entity\Role;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+// Aucune requête personnalisée : les méthodes standard find()/findAll()/findBy() de Doctrine suffisent.
 class RoleRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)

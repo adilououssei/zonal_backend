@@ -13,6 +13,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+// Réglages globaux du site (page "Paramètres" de l'admin). Réservé au
+// ROLE_SUPER_ADMIN : contrairement aux autres modules dont l'accès est piloté
+// par la matrice de permissions (Role::$permissions), ici c'est verrouillé en
+// dur côté serveur, quel que soit ce qui est coché dans la page Rôles.
 #[Route('/api/admin/settings')]
 #[IsGranted('ROLE_SUPER_ADMIN')]
 class SettingsController extends AbstractController
@@ -24,6 +28,8 @@ class SettingsController extends AbstractController
     #[Route('', name: 'admin_settings_get', methods: ['GET'])]
     public function getSettings(SettingsRepository $repo, EntityManagerInterface $em): JsonResponse
     {
+        // Il n'existe qu'une seule ligne de Settings en base : on la crée à la première
+        // consultation si elle n'existe pas encore (ex: juste après l'installation)
         $settings = $repo->findOneBy([]);
         if (!$settings) {
             $settings = new Settings();
@@ -47,6 +53,8 @@ class SettingsController extends AbstractController
             $em->persist($settings);
         }
 
+        // Chaque bloc ci-dessous correspond à un onglet de la page Paramètres.
+        // Mise à jour partielle : seuls les champs présents dans la requête sont modifiés.
         // General
         if (isset($data['orgName'])) $settings->setOrgName($data['orgName']);
         if (isset($data['orgNameEn'])) $settings->setOrgNameEn($data['orgNameEn']);

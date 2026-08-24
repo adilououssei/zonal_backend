@@ -6,6 +6,13 @@ use App\Repository\SettingsRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Réglages globaux du site, gérés depuis la page "Paramètres" de l'admin.
+ * Il n'existe qu'une seule ligne de cette entité en base (singleton applicatif) :
+ * elle regroupe tous les onglets de la page Paramètres (Général, Contact,
+ * Réseaux sociaux, Pied de page, Images, SEO), d'où le regroupement par
+ * commentaires ci-dessous plutôt que par plusieurs entités séparées.
+ */
 #[ORM\Entity(repositoryClass: SettingsRepository::class)]
 #[ORM\Table(name: '`settings`')]
 class Settings
@@ -15,7 +22,7 @@ class Settings
     #[ORM\Column]
     private ?int $id = null;
 
-    // General tab
+    // Onglet Général
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $orgName = null;
 
@@ -34,7 +41,7 @@ class Settings
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $phone = null;
 
-    // Contact tab
+    // Onglet Contact
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $contactEmail = null;
 
@@ -53,7 +60,7 @@ class Settings
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $googleMapsIframe = null;
 
-    // Social tab
+    // Onglet Réseaux sociaux (liens affichés dans le header/footer du site)
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $facebook = null;
 
@@ -66,7 +73,7 @@ class Settings
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $whatsappUrl = null;
 
-    // Footer tab
+    // Onglet Pied de page
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $footerPresentation = null;
 
@@ -82,7 +89,7 @@ class Settings
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $privacyLink = null;
 
-    // Images tab
+    // Onglet Images (visuels utilisés sur les différentes pages publiques)
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $heroImage = null;
 
@@ -98,7 +105,7 @@ class Settings
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $contactImage = null;
 
-    // SEO tab
+    // Onglet SEO (référencement)
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $metaTitle = null;
 
@@ -114,6 +121,7 @@ class Settings
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $googleAnalyticsId = null;
 
+    // Traductions anglaises des champs texte du site
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $orgNameEn = null;
 
@@ -131,7 +139,7 @@ class Settings
 
     public function getId(): ?int { return $this->id; }
 
-    // General
+    // Général
     public function getOrgName(): ?string { return $this->orgName; }
     public function setOrgName(?string $v): static { $this->orgName = $v; return $this; }
     public function getLogo(): ?string { return $this->logo; }
@@ -159,7 +167,7 @@ class Settings
     public function getGoogleMapsIframe(): ?string { return $this->googleMapsIframe; }
     public function setGoogleMapsIframe(?string $v): static { $this->googleMapsIframe = $v; return $this; }
 
-    // Social
+    // Réseaux sociaux
     public function getFacebook(): ?string { return $this->facebook; }
     public function setFacebook(?string $v): static { $this->facebook = $v; return $this; }
     public function getLinkedin(): ?string { return $this->linkedin; }
@@ -169,7 +177,7 @@ class Settings
     public function getWhatsappUrl(): ?string { return $this->whatsappUrl; }
     public function setWhatsappUrl(?string $v): static { $this->whatsappUrl = $v; return $this; }
 
-    // Footer
+    // Pied de page
     public function getFooterPresentation(): ?string { return $this->footerPresentation; }
     public function setFooterPresentation(?string $v): static { $this->footerPresentation = $v; return $this; }
     public function getCopyright(): ?string { return $this->copyright; }
@@ -205,7 +213,7 @@ class Settings
     public function getGoogleAnalyticsId(): ?string { return $this->googleAnalyticsId; }
     public function setGoogleAnalyticsId(?string $v): static { $this->googleAnalyticsId = $v; return $this; }
 
-    // English fields
+    // Champs traduits en anglais
     public function getOrgNameEn(): ?string { return $this->orgNameEn; }
     public function setOrgNameEn(?string $v): static { $this->orgNameEn = $v; return $this; }
     public function getSloganEn(): ?string { return $this->sloganEn; }

@@ -7,11 +7,18 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Représente un événement affiché sur le site public (page "Événements") et
+ * géré depuis l'admin. Les champs suffixés "En" contiennent la traduction
+ * anglaise du contenu (titre, description, lieu, catégorie) : ils sont
+ * utilisés quand le visiteur consulte le site en anglais.
+ */
 #[ORM\Entity(repositoryClass: EventRepository::class)]
 #[ORM\Table(name: '`event`')]
 #[ORM\HasLifecycleCallbacks]
 class Event
 {
+    // Utilisateur admin ayant créé l'événement (traçabilité) ; conservé même si le compte est supprimé (SET NULL)
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $createdBy = null;
@@ -38,15 +45,18 @@ class Event
     #[Assert\NotBlank]
     private ?string $location = null;
 
+    // "À venir", "En cours", "Terminé"... piloté depuis l'admin
     #[ORM\Column(length: 20, options: ['default' => 'À venir'])]
     private string $status = 'À venir';
 
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $coverImage = null;
 
+    // Liste de chemins d'images additionnelles (galerie photo de l'événement)
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $gallery = null;
 
+    // --- Traductions anglaises ---
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $titleEn = null;
 

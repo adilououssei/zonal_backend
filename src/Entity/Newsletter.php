@@ -6,6 +6,11 @@ use App\Repository\NewsletterRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Abonné à la newsletter du site. $unsubscribeToken est un jeton unique
+ * généré automatiquement, utilisé dans le lien de désinscription envoyé
+ * par email (permet de se désinscrire sans être connecté).
+ */
 #[ORM\Entity(repositoryClass: NewsletterRepository::class)]
 #[ORM\Table(name: '`newsletter`')]
 #[ORM\HasLifecycleCallbacks]
@@ -24,9 +29,11 @@ class Newsletter
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $name = null;
 
+    // Permet de désactiver l'abonnement (désinscription) sans supprimer l'historique
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
 
+    // Jeton unique utilisé dans le lien "se désinscrire" envoyé par email
     #[ORM\Column(length: 64, unique: true)]
     private ?string $unsubscribeToken = null;
 
@@ -50,6 +57,7 @@ class Newsletter
     public function getSubscribedAt(): ?\DateTimeImmutable { return $this->subscribedAt; }
     public function setSubscribedAt(\DateTimeImmutable $subscribedAt): static { $this->subscribedAt = $subscribedAt; return $this; }
 
+    // Renseigne automatiquement la date d'inscription et génère le jeton de désinscription si absent
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {

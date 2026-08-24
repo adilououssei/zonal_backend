@@ -16,6 +16,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
+// Alimente la page d'accueil de l'admin (compteurs, derniers contenus ajoutés,
+// graphiques). Accessible à tout utilisateur ROLE_ADMIN (voir security.yaml) ;
+// il n'y a pas de permission "dashboard" bloquante côté serveur, seul le menu
+// est masqué côté front si la permission est désactivée.
 #[Route('/api/admin/dashboard')]
 class DashboardController extends AbstractController
 {
@@ -33,6 +37,7 @@ class DashboardController extends AbstractController
             'totalSubscribers' => (int) $em->createQuery('SELECT COUNT(n) FROM ' . Newsletter::class . ' n')->getSingleScalarResult(),
         ];
 
+        // Les 5 éléments les plus récents de chaque type, affichés dans les widgets "Derniers ajouts"
         $recentEvents = array_map(fn (Event $e) => [
             'id' => $e->getId(),
             'title' => $e->getTitle(),
@@ -76,6 +81,8 @@ class DashboardController extends AbstractController
         ]);
     }
 
+    // Compte, mois par mois, le nombre d'événements + articles + projets créés
+    // (toutes catégories confondues), utilisé pour le graphique d'activité du dashboard.
     private function getMonthlyStats(EntityManagerInterface $em): array
     {
         $conn = $em->getConnection();
@@ -85,6 +92,7 @@ class DashboardController extends AbstractController
         $tables = ['event', 'news', 'project'];
 
         foreach ($tables as $table) {
+            // La colonne de date s'appelle "start_date" pour les projets, "date" pour les autres
             $dateCol = $table === 'project' ? 'start_date' : 'date';
 
             try {
@@ -109,6 +117,8 @@ class DashboardController extends AbstractController
             }
         }
 
+        // On garantit les 12 mois dans la réponse, même ceux sans aucune donnée (valeur 0),
+        // pour que le graphique affiche toujours une échelle complète Jan -> Déc
         $labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
         $result = [];
         for ($i = 1; $i <= 12; $i++) {

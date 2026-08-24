@@ -12,6 +12,11 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+// Permet à tout utilisateur admin connecté de gérer SON PROPRE profil (identité,
+// email, mot de passe). Contrairement à Admin\UserController (réservé au
+// ROLE_SUPER_ADMIN, qui gère TOUS les comptes), ici il n'y a pas de restriction
+// de rôle : chacun peut modifier ses propres informations, y compris le
+// super administrateur pour lequel c'est la seule voie d'auto-modification autorisée.
 #[Route('/api/admin/profile')]
 class ProfileController extends AbstractController
 {
@@ -72,6 +77,8 @@ class ProfileController extends AbstractController
         return $this->json($this->serializeProfile($user));
     }
 
+    // Changement de mot de passe : exige le mot de passe actuel pour confirmer
+    // que c'est bien le propriétaire du compte qui agit
     #[Route('/password', name: 'admin_profile_password', methods: ['PUT'])]
     public function changePassword(
         Request $request,

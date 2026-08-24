@@ -7,11 +7,17 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Projet de l'ONG affiché sur le site (page "Projets"). Les champs suffixés
+ * "En" contiennent la traduction anglaise. $status suit l'avancement
+ * (ex: "planned", "ongoing", "completed").
+ */
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
 #[ORM\Table(name: '`project`')]
 #[ORM\HasLifecycleCallbacks]
 class Project
 {
+    // Utilisateur admin ayant créé le projet (traçabilité) ; conservé même si le compte est supprimé (SET NULL)
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $createdBy = null;
@@ -43,9 +49,11 @@ class Project
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $endDate = null;
 
+    // Avancement du projet : "planned", "ongoing", "completed"...
     #[ORM\Column(length: 20, options: ['default' => 'planned'])]
     private string $status = 'planned';
 
+    // --- Traductions anglaises ---
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $titleEn = null;
 

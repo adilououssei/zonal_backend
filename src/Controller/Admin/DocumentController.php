@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+// CRUD admin des documents téléchargeables (le fichier lui-même est envoyé au
+// préalable via UploadController, seul son chemin est stocké ici).
 #[Route('/api/admin/documents')]
 class DocumentController extends AbstractController
 {
@@ -38,6 +40,7 @@ class DocumentController extends AbstractController
         }
 
         $document = new Document();
+        // Trace quel admin a créé ce document (affiché dans la colonne "Ajouté par")
         $document->setCreatedBy($this->getUser());
         $document->setName($data['name']);
         $document->setType($data['type'] ?? 'PDF');
@@ -63,6 +66,7 @@ class DocumentController extends AbstractController
             return $this->json(['error' => 'Données requises.'], Response::HTTP_BAD_REQUEST);
         }
 
+        // Seuls les champs présents dans la requête sont modifiés (mise à jour partielle)
         if (isset($data['name'])) $document->setName($data['name']);
         if (isset($data['type'])) $document->setType($data['type']);
         if (isset($data['size'])) $document->setSize($data['size']);

@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+// CRUD admin de la galerie photo.
 #[Route('/api/admin/gallery')]
 class GalleryController extends AbstractController
 {
@@ -78,6 +79,8 @@ class GalleryController extends AbstractController
         if (isset($data['date'])) {
             try { $gallery->setDate(new \DateTimeImmutable($data['date'])); } catch (\Exception) {}
         }
+        // array_key_exists (et non isset) car "images" peut légitimement être envoyé à null
+        // pour vider la liste d'images de l'album
         if (array_key_exists('images', $data)) $gallery->setImages($data['images']);
 
         $em->flush();

@@ -10,6 +10,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 
+// Handler de succès pour un firewall Symfony basé sur form_login/authenticator classique.
+// Non branché dans security.yaml actuellement : la connexion réelle passe par
+// AuthController::login (JWT généré manuellement), qui duplique la même logique
+// de génération de jeton. Conservé au cas où un login "classique" Symfony
+// serait réactivé plus tard.
 class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterface
 {
     private const ALGORITHM = 'HS256';

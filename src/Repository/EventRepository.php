@@ -7,6 +7,9 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
+ * Requêtes personnalisées pour les événements (en plus des méthodes standard
+ * find()/findAll()/findBy() fournies par Doctrine).
+ *
  * @extends ServiceEntityRepository<Event>
  */
 class EventRepository extends ServiceEntityRepository
@@ -28,6 +31,7 @@ class EventRepository extends ServiceEntityRepository
         return $this->findBy(['status' => $status], ['date' => 'DESC']);
     }
 
+    // Événements à venir : soit marqués "À venir" en base, soit dont la date n'est pas encore passée
     /** @return Event[] */
     public function findUpcoming(): array
     {
@@ -40,6 +44,7 @@ class EventRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    // Événements passés : soit marqués "Terminé" en base, soit dont la date est déjà passée
     /** @return Event[] */
     public function findPast(): array
     {

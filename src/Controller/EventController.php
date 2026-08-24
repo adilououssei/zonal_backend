@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
+// API publique (accès libre, voir security.yaml) pour afficher les événements sur le site.
 #[Route('/api/events')]
 class EventController extends AbstractController
 {
@@ -50,6 +51,9 @@ class EventController extends AbstractController
         return $this->json($this->serializeEvent($event));
     }
 
+    // Met en forme un événement pour la réponse JSON : traduit les champs texte
+    // selon la langue demandée (Accept-Language) et calcule des champs dérivés
+    // (jour/mois/année séparés, statut recalculé depuis la date).
     private function serializeEvent(Event $event): array
     {
         $date = $event->getDate();
@@ -71,6 +75,9 @@ class EventController extends AbstractController
         ];
     }
 
+    // Le statut affiché ("À venir"/"En cours"/"Terminé") est recalculé à la volée à
+    // partir de la date plutôt que de se fier uniquement au champ status stocké en
+    // base, pour rester juste même si personne n'a mis à jour l'événement en admin.
     private function computeStatusFromDate(?\DateTimeImmutable $date): string
     {
         if (!$date) return 'À venir';
@@ -84,6 +91,7 @@ class EventController extends AbstractController
         return 'À venir';
     }
 
+    // Convertit un numéro de mois en abréviation française affichée dans les cartes événement
     private function formatMonth(?string $monthNumber): string
     {
         $months = [

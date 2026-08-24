@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,6 +13,9 @@ use Symfony\Component\Mime\Email;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 
+// Traite le formulaire de contact public : envoie un email à l'équipe ZONAL
+// avec les infos saisies par le visiteur (le "reply-to" pointe vers l'email
+// du visiteur pour pouvoir lui répondre directement).
 #[Route('/api/contact')]
 class ContactController extends AbstractController
 {
@@ -19,8 +23,10 @@ class ContactController extends AbstractController
     public function send(
         Request $request,
         MailerInterface $mailer,
+        LoggerInterface $logger,
         #[Autowire(service: 'limiter.public_form')] RateLimiterFactory $publicFormLimiter,
     ): JsonResponse {
+        // Limite le nombre de messages par IP pour éviter le spam de ce formulaire
         if (!$publicFormLimiter->create($request->getClientIp())->consume(1)->isAccepted()) {
             return $this->json(['error' => 'Trop de messages envoyés. Réessayez plus tard.'], Response::HTTP_TOO_MANY_REQUESTS);
         }
@@ -49,10 +55,13 @@ class ContactController extends AbstractController
                     'name' => $name,
                     'email' => $email,
                     'subject' => $subject,
+                    // htmlspecialchars échappe le HTML saisi par le visiteur (anti-XSS dans l'email),
+                    // nl2br conserve les retours à la ligne du message d'origine
                     'message' => nl2br(htmlspecialchars($message)),
                 ]));
             $mailer->send($email);
         } catch (\Exception $e) {
+            $logger->error('Échec de l\'envoi de l\'email de contact', ['exception' => $e]);
             return $this->json(['error' => 'Erreur lors de l\'envoi du message.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 

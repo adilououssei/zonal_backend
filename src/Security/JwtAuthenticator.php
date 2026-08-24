@@ -17,6 +17,10 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 
+// Authenticator branché sur le firewall "api" (voir security.yaml) : vérifie le
+// jeton JWT présent dans l'en-tête "Authorization: Bearer <token>" sur chaque
+// requête protégée et résout l'utilisateur Symfony correspondant. Le jeton lui-
+// même est généré par AuthController::login/register lors de la connexion.
 class JwtAuthenticator extends AbstractAuthenticator
 {
     private const ALGORITHM = 'HS256';
@@ -28,6 +32,7 @@ class JwtAuthenticator extends AbstractAuthenticator
     ) {
     }
 
+    // Ne s'applique qu'aux requêtes portant un en-tête "Authorization: Bearer ..."
     public function supports(Request $request): ?bool
     {
         return $request->headers->has('Authorization')
@@ -41,6 +46,8 @@ class JwtAuthenticator extends AbstractAuthenticator
         try {
             $decoded = JWT::decode($token, new Key($this->jwtSecret, self::ALGORITHM));
         } catch (\Throwable $e) {
+            // Signature invalide, jeton expiré, jeton malformé... toutes ces erreurs
+            // sont regroupées derrière un message générique côté client
             throw new CustomUserMessageAuthenticationException('Token invalide ou expiré.');
         }
 
@@ -63,6 +70,7 @@ class JwtAuthenticator extends AbstractAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        // Rien à faire ici : on laisse la requête continuer normalement vers le contrôleur ciblé
         return null;
     }
 

@@ -16,6 +16,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+// Commande CLI pour créer (ou promouvoir) le compte super administrateur,
+// volontairement séparée des fixtures pour éviter un mot de passe par défaut
+// faible et prévisible en dur dans le code source.
+// Usage : php bin/console app:create-super-admin
 #[AsCommand(
     name: 'app:create-super-admin',
     description: 'Crée (ou promeut) le compte super administrateur par défaut, sans passer par les fixtures.',
@@ -23,11 +27,15 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class CreateSuperAdminCommand extends Command
 {
     private const ROLE_NAME = 'Super Administrateur';
+    // Toutes les permissions activées par défaut pour ce rôle. Si un nouveau
+    // module admin est ajouté au projet, penser à l'ajouter ici aussi (sinon le
+    // rôle existant en base ne sera pas mis à jour automatiquement, seul un
+    // nouveau rôle créé à partir de zéro l'aurait).
     private const ROLE_PERMISSIONS = [
         'dashboard' => true, 'events' => true, 'news' => true,
         'projects' => true, 'gallery' => true, 'partners' => true,
-        'testimonials' => true, 'documents' => true, 'users' => true,
-        'roles' => true, 'settings' => true,
+        'testimonials' => true, 'documents' => true, 'newsletter' => true,
+        'users' => true, 'roles' => true, 'settings' => true,
     ];
 
     public function __construct(
@@ -85,6 +93,8 @@ EOT
         $user = $this->userRepository->findByEmail($email);
         $force = (bool) $input->getOption('force');
 
+        // Si le compte existe déjà et est déjà super admin, on ne fait rien sauf si --force
+        // est passé (pour éviter d'écraser accidentellement le mot de passe en production)
         if ($user && \in_array('ROLE_SUPER_ADMIN', $user->getRoles(), true) && !$force) {
             $io->warning("Un super administrateur existe déjà pour \"$email\". Relancez avec --force pour réinitialiser son mot de passe.");
             return Command::SUCCESS;
@@ -111,6 +121,8 @@ EOT
             return Command::FAILURE;
         }
 
+        // Récupère le rôle "Super Administrateur" s'il existe déjà (créé par les fixtures
+        // ou un précédent lancement de cette commande), sinon le crée avec tous les droits
         $role = $this->roleRepository->findOneBy(['name' => self::ROLE_NAME]);
         if (!$role) {
             $role = new Role();
@@ -129,6 +141,8 @@ EOT
             $user->setIsActive(true);
         }
 
+        // ROLE_SUPER_ADMIN pour les vérifications #[IsGranted('ROLE_SUPER_ADMIN')] (UserController,
+        // RoleController, SettingsController...), ROLE_ADMIN pour passer le firewall /api/admin
         $user->setRoles(['ROLE_SUPER_ADMIN', 'ROLE_ADMIN']);
         $user->setRole($role);
 

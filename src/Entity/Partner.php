@@ -7,11 +7,17 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Partenaire de l'ONG affiché sur le site (logos partenaires). $status
+ * permet de désactiver temporairement l'affichage d'un partenaire sans le
+ * supprimer. Les champs suffixés "En" contiennent la traduction anglaise.
+ */
 #[ORM\Entity(repositoryClass: PartnerRepository::class)]
 #[ORM\Table(name: '`partner`')]
 #[ORM\HasLifecycleCallbacks]
 class Partner
 {
+    // Utilisateur admin ayant créé le partenaire (traçabilité) ; conservé même si le compte est supprimé (SET NULL)
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $createdBy = null;
@@ -36,9 +42,11 @@ class Partner
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $logo = null;
 
+    // "active" ou "inactive" : contrôle l'affichage sur le site public
     #[ORM\Column(length: 20, options: ['default' => 'active'])]
     private string $status = 'active';
 
+    // --- Traductions anglaises ---
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $nameEn = null;
 

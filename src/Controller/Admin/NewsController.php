@@ -4,7 +4,9 @@ namespace App\Controller\Admin;
 
 use App\Entity\News;
 use App\Repository\NewsRepository;
+use App\Service\DeepLTranslator;
 use App\Service\LocaleHelper;
+use App\Service\NewsletterNotifier;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,12 +14,39 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+// CRUD admin des articles d'actualité. À la création, un email est envoyé aux
+// abonnés newsletter (NewsletterNotifier) et les champs anglais manquants sont
+// traduits automatiquement (DeepLTranslator) si le service est configuré.
 #[Route('/api/admin/news')]
 class NewsController extends AbstractController
 {
     public function __construct(
         private LocaleHelper $localeHelper,
+        private NewsletterNotifier $newsletterNotifier,
+        private DeepLTranslator $translator,
     ) {
+    }
+
+    /**
+     * Remplit automatiquement les champs *En manquants par traduction FR -> EN
+     * (sauf l'auteur, un nom propre qu'on ne traduit pas).
+     */
+    private function autoTranslate(News $news): void
+    {
+        if (!$this->translator->isConfigured()) return;
+
+        if (!$news->getTitleEn() && $news->getTitle()) {
+            $news->setTitleEn($this->translator->translateToEnglish($news->getTitle()));
+        }
+        if (!$news->getExcerptEn() && $news->getExcerpt()) {
+            $news->setExcerptEn($this->translator->translateToEnglish($news->getExcerpt()));
+        }
+        if (!$news->getContentEn() && $news->getContent()) {
+            $news->setContentEn($this->translator->translateToEnglish($news->getContent(), isHtml: true));
+        }
+        if (!$news->getCategoryEn() && $news->getCategory()) {
+            $news->setCategoryEn($this->translator->translateToEnglish($news->getCategory()));
+        }
     }
     #[Route('', name: 'admin_news_list', methods: ['GET'])]
     public function index(NewsRepository $newsRepository): JsonResponse
@@ -64,10 +93,30 @@ class NewsController extends AbstractController
             return $this->json(['error' => 'Format de date invalide (attendu: YYYY-MM-DD).'], Response::HTTP_BAD_REQUEST);
         }
 
+        $this->autoTranslate($news);
+
         $em->persist($news);
         $em->flush();
 
+        // Notifie tous les abonnés actifs de la newsletter par email
+        $this->newsletterNotifier->notifyNewContent(
+            'Nouvelle actualité',
+            $news->getTitle(),
+            $this->excerptFor($news),
+            '/news/' . $news->getId(),
+            $news->getCoverImage(),
+        );
+
         return $this->json($this->serializeNews($news), Response::HTTP_CREATED);
+    }
+
+    // Résumé pour l'email de notification : utilise l'extrait saisi par l'admin s'il existe,
+    // sinon replie sur le début du contenu complet (texte brut, sans balises HTML)
+    private function excerptFor(News $news, int $maxLength = 160): ?string
+    {
+        $text = trim(strip_tags($news->getExcerpt() ?? $news->getContent() ?? ''));
+        if ($text === '') return null;
+        return mb_strlen($text) > $maxLength ? mb_substr($text, 0, $maxLength) . '…' : $text;
     }
 
     #[Route('/{id}', name: 'admin_news_update', methods: ['PUT'], requirements: ['id' => '\d+'])]
@@ -100,6 +149,8 @@ class NewsController extends AbstractController
             }
         }
 
+        $this->autoTranslate($news);
+
         $em->flush();
 
         return $this->json($this->serializeNews($news));
@@ -114,6 +165,8 @@ class NewsController extends AbstractController
         return $this->json(['message' => 'Article supprimé.']);
     }
 
+    // Endpoint dédié pour incrémenter manuellement le compteur de vues depuis l'admin
+    // (distinct de l'incrément automatique fait côté public dans NewsController::show)
     #[Route('/{id}/views', name: 'admin_news_increment_views', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function incrementViews(News $news, EntityManagerInterface $em): JsonResponse
     {

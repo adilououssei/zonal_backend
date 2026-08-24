@@ -15,6 +15,12 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+// Gestion admin des comptes utilisateurs (page "Utilisateurs"). Réservé au
+// ROLE_SUPER_ADMIN. Le compte super administrateur est protégé en dur ici
+// (voir update/delete/toggleStatus) : personne, pas même un autre
+// ROLE_SUPER_ADMIN, ne peut le modifier, le désactiver ou le supprimer depuis
+// cette page. Pour modifier son propre profil, le super administrateur passe
+// par ProfileController (/api/admin/profile), qui n'a pas cette restriction.
 #[Route('/api/admin/users')]
 #[IsGranted('ROLE_SUPER_ADMIN')]
 class UserController extends AbstractController
@@ -104,6 +110,12 @@ class UserController extends AbstractController
             return $this->json(['error' => 'Données requises.'], Response::HTTP_BAD_REQUEST);
         }
 
+        // Le compte super administrateur ne peut pas être modifié via cette page
+        // (voir ProfileController pour l'auto-modification par son propriétaire)
+        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles(), true)) {
+            return $this->json(['error' => 'Le super administrateur ne peut pas être modifié depuis cette page.'], Response::HTTP_FORBIDDEN);
+        }
+
         if (isset($data['email'])) {
             $existing = $em->getRepository(User::class)->findOneBy(['email' => $data['email']]);
             if ($existing && $existing->getId() !== $user->getId()) {
@@ -140,7 +152,8 @@ class UserController extends AbstractController
     #[Route('/{id}', name: 'admin_users_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     public function delete(User $user, EntityManagerInterface $em): JsonResponse
     {
-        if ($user->getEmail() === 'admin@zonalong.org') {
+        // Le compte super administrateur ne peut jamais être supprimé, par personne
+        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles(), true)) {
             return $this->json(['error' => 'Le super administrateur ne peut pas être supprimé.'], Response::HTTP_FORBIDDEN);
         }
 
@@ -153,7 +166,8 @@ class UserController extends AbstractController
     #[Route('/{id}/status', name: 'admin_users_toggle_status', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function toggleStatus(User $user, EntityManagerInterface $em): JsonResponse
     {
-        if ($user->getEmail() === 'admin@zonalong.org') {
+        // Le compte super administrateur ne peut jamais être désactivé
+        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles(), true)) {
             return $this->json(['error' => 'Le super administrateur ne peut pas être désactivé.'], Response::HTTP_FORBIDDEN);
         }
 
@@ -188,6 +202,7 @@ class UserController extends AbstractController
         ];
     }
 
+    // Libellé de rôle affiché dans la colonne "Rôle" de la liste des utilisateurs
     private function formatRoleName(array $roles): string
     {
         if (in_array('ROLE_SUPER_ADMIN', $roles)) return 'Super Admin';

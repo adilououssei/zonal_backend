@@ -7,6 +7,9 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
+ * Requêtes personnalisées pour les partenaires (en plus des méthodes
+ * standard find()/findAll()/findBy() fournies par Doctrine).
+ *
  * @extends ServiceEntityRepository<Partner>
  */
 class PartnerRepository extends ServiceEntityRepository

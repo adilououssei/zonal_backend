@@ -7,6 +7,9 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
+ * Requêtes personnalisées pour la galerie photo (en plus des méthodes
+ * standard find()/findAll()/findBy() fournies par Doctrine).
+ *
  * @extends ServiceEntityRepository<Gallery>
  */
 class GalleryRepository extends ServiceEntityRepository

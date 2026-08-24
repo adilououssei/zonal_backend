@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+// CRUD admin des partenaires.
 #[Route('/api/admin/partners')]
 class PartnerController extends AbstractController
 {
@@ -82,6 +83,8 @@ class PartnerController extends AbstractController
         return $this->json($this->serialize($partner));
     }
 
+    // Bascule rapidement un partenaire actif <-> inactif (bouton dédié dans la liste,
+    // sans passer par le formulaire d'édition complet)
     #[Route('/{id}/toggle-status', name: 'admin_partners_toggle_status', methods: ['PATCH'], requirements: ['id' => '\d+'])]
     public function toggleStatus(Partner $partner, EntityManagerInterface $em): JsonResponse
     {

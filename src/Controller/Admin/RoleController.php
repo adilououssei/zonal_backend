@@ -12,6 +12,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+// Gestion des rôles métier (page "Rôles" de l'admin) : création de rôles
+// personnalisés et attribution des permissions par module. Réservé au
+// ROLE_SUPER_ADMIN.
+//
+// Important : la liste des modules ci-dessous (permissions()) est la seule
+// source de vérité de ce qui est cochable dans la page Rôles. Quand une
+// nouvelle fonctionnalité admin est ajoutée, il faut penser à l'ajouter ici
+// pour qu'elle apparaisse dans la matrice de permissions - sinon le module
+// existera dans le code mais restera invisible sur cette page.
 #[Route('/api/admin/roles')]
 #[IsGranted('ROLE_SUPER_ADMIN')]
 class RoleController extends AbstractController
@@ -89,6 +98,9 @@ class RoleController extends AbstractController
         return $this->json(['message' => 'Rôle supprimé.']);
     }
 
+    // Liste figée des modules affichables dans la matrice de permissions.
+    // Le compte Super Administrateur contourne toujours cette matrice côté front
+    // (voir AdminLayout.tsx) : il voit tout, même un module pas encore coché ici.
     #[Route('/permissions', name: 'admin_roles_permissions', methods: ['GET'])]
     public function permissions(): JsonResponse
     {
@@ -101,6 +113,7 @@ class RoleController extends AbstractController
             ['key' => 'partners', 'label' => 'Partenaires', 'icon' => 'Handshake'],
             ['key' => 'testimonials', 'label' => 'Témoignages', 'icon' => 'MessageSquare'],
             ['key' => 'documents', 'label' => 'Documents', 'icon' => 'FileText'],
+            ['key' => 'newsletter', 'label' => 'Newsletter', 'icon' => 'Mail'],
             ['key' => 'users', 'label' => 'Utilisateurs', 'icon' => 'Users'],
             ['key' => 'roles', 'label' => 'Rôles', 'icon' => 'Shield'],
             ['key' => 'settings', 'label' => 'Paramètres', 'icon' => 'Settings'],

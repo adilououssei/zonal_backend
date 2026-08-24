@@ -7,11 +7,17 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Document téléchargeable mis à disposition sur le site (rapports, chartes...).
+ * $file est le chemin du fichier stocké sur le serveur, $size sa taille en
+ * octets et $type son format (PDF, DOCX...).
+ */
 #[ORM\Entity(repositoryClass: DocumentRepository::class)]
 #[ORM\Table(name: '`document`')]
 #[ORM\HasLifecycleCallbacks]
 class Document
 {
+    // Utilisateur admin ayant ajouté le document (traçabilité) ; conservé même si le compte est supprimé (SET NULL)
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $createdBy = null;
@@ -24,12 +30,15 @@ class Document
     #[Assert\NotBlank]
     private ?string $name = null;
 
+    // Format du fichier (PDF, DOCX...)
     #[ORM\Column(length: 10)]
     private string $type = 'PDF';
 
+    // Taille du fichier en octets
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
     private ?int $size = null;
 
+    // Chemin/URL du fichier stocké sur le serveur
     #[ORM\Column(length: 500)]
     #[Assert\NotBlank]
     private ?string $file = null;

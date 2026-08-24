@@ -14,6 +14,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
+// API publique (accès libre, voir security.yaml) exposant des compteurs globaux
+// (nombre de projets, événements, etc.), utilisés pour les chiffres-clés affichés
+// sur le site (ex: page d'accueil "X projets réalisés").
 #[Route('/api/stats')]
 class StatsController extends AbstractController
 {

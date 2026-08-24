@@ -9,6 +9,15 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
+// Données de démonstration chargées via `php bin/console doctrine:fixtures:load`
+// (environnement de développement uniquement). Crée les 3 rôles de base, deux
+// comptes de test et quelques événements d'exemple.
+//
+// Important : si un module est ajouté au projet (une nouvelle clé de permission
+// dans RoleController::permissions()), il faut penser à l'ajouter aussi dans les
+// tableaux de permissions ci-dessous, sinon les rôles de démo créés par ces
+// fixtures n'auront pas cette permission tant que quelqu'un ne l'aura pas cochée
+// manuellement dans la page Rôles.
 class AppFixtures extends Fixture
 {
     public function __construct(
@@ -18,33 +27,37 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
+        // Rôle avec toutes les permissions activées (équivalent du compte super admin)
         $superAdminRole = new Role();
         $superAdminRole->setName('Super Administrateur');
         $superAdminRole->setPermissions([
             'dashboard' => true, 'events' => true, 'news' => true,
             'projects' => true, 'gallery' => true, 'partners' => true,
-            'testimonials' => true, 'documents' => true, 'users' => true,
-            'roles' => true, 'settings' => true,
+            'testimonials' => true, 'documents' => true, 'newsletter' => true,
+            'users' => true, 'roles' => true, 'settings' => true,
         ]);
         $manager->persist($superAdminRole);
 
+        // Rôle "Administrateur" : accès à tout le contenu, mais pas à la gestion
+        // des utilisateurs, des rôles ou des paramètres du site
         $adminRole = new Role();
         $adminRole->setName('Administrateur');
         $adminRole->setPermissions([
             'dashboard' => true, 'events' => true, 'news' => true,
             'projects' => true, 'gallery' => true, 'partners' => true,
-            'testimonials' => true, 'documents' => true, 'users' => false,
-            'roles' => false, 'settings' => false,
+            'testimonials' => true, 'documents' => true, 'newsletter' => true,
+            'users' => false, 'roles' => false, 'settings' => false,
         ]);
         $manager->persist($adminRole);
 
+        // Rôle "Éditeur" : accès en lecture seule au tableau de bord uniquement
         $editorRole = new Role();
         $editorRole->setName('Éditeur');
         $editorRole->setPermissions([
             'dashboard' => true, 'events' => false, 'news' => false,
             'projects' => false, 'gallery' => false, 'partners' => false,
-            'testimonials' => false, 'documents' => false, 'users' => false,
-            'roles' => false, 'settings' => false,
+            'testimonials' => false, 'documents' => false, 'newsletter' => false,
+            'users' => false, 'roles' => false, 'settings' => false,
         ]);
         $manager->persist($editorRole);
 
@@ -52,6 +65,7 @@ class AppFixtures extends Fixture
         // via `php bin/console app:create-super-admin` (voir src/Command/CreateSuperAdminCommand.php),
         // pour éviter un mot de passe par défaut faible et prévisible en dur dans le code.
 
+        // Compte de démonstration avec le rôle "Administrateur"
         $editorUser = new User();
         $editorUser->setEmail('editeur@zonalong.org');
         $editorUser->setPassword(
@@ -66,6 +80,7 @@ class AppFixtures extends Fixture
         $editorUser->setLastLoginAt(new \DateTimeImmutable('2024-06-01 14:20:00'));
         $manager->persist($editorUser);
 
+        // Compte de démonstration avec le rôle "Éditeur"
         $viewerUser = new User();
         $viewerUser->setEmail('lecteur@zonalong.org');
         $viewerUser->setPassword(
@@ -79,6 +94,7 @@ class AppFixtures extends Fixture
         $viewerUser->setIsActive(true);
         $manager->persist($viewerUser);
 
+        // Quelques événements de démonstration (un à venir, un futur, un terminé)
         $event1 = new Event();
         $event1->setTitle("Journée mondiale de l'environnement");
         $event1->setDescription("Activités de sensibilisation, plantation d'arbres et nettoyage des espaces publics.");

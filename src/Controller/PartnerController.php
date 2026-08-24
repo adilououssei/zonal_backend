@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
+// API publique (accès libre, voir security.yaml) : logos partenaires affichés sur le site.
 #[Route('/api/partners')]
 class PartnerController extends AbstractController
 {
@@ -19,6 +20,7 @@ class PartnerController extends AbstractController
     #[Route('', name: 'public_partners_list', methods: ['GET'])]
     public function index(PartnerRepository $partnerRepository): JsonResponse
     {
+        // Seuls les partenaires actifs sont exposés publiquement (les inactifs restent visibles en admin)
         $partners = $partnerRepository->findByStatus('active');
         $data = array_map(fn (Partner $p) => $this->serialize($p), $partners);
         return $this->json($data);

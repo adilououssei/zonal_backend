@@ -7,6 +7,21 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Rôle métier utilisé pour gérer les permissions fines du back-office
+ * (page "Rôles" de l'admin). Chaque rôle a un nom libre (ex: "Administrateur",
+ * "Éditeur") et une liste de permissions par module (dashboard, events, news,
+ * newsletter, users, roles, settings...) stockée en JSON.
+ *
+ * Attention : ceci est distinct des rôles de sécurité Symfony (ROLE_USER,
+ * ROLE_ADMIN, ROLE_SUPER_ADMIN) définis sur User::$roles, qui contrôlent
+ * l'accès aux routes API. Ce Role sert uniquement à afficher/masquer les
+ * modules du menu admin selon le module list défini dans RoleController::permissions().
+ *
+ * Le compte Super Administrateur contourne systématiquement cette liste de
+ * permissions côté front (voir AdminLayout.tsx) : il a toujours accès à tout,
+ * même à un module ajouté après coup et pas encore coché ici.
+ */
 #[ORM\Entity(repositoryClass: RoleRepository::class)]
 #[ORM\Table(name: '`role`')]
 #[ORM\HasLifecycleCallbacks]
@@ -21,6 +36,7 @@ class Role
     #[Assert\NotBlank]
     private ?string $name = null;
 
+    // Tableau associatif { "cléDuModule": true|false }, ex: { "newsletter": true, "users": false }
     #[ORM\Column(type: Types::JSON)]
     private array $permissions = [];
 

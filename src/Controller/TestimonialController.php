@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
+// API publique (accès libre, voir security.yaml) : témoignages affichés sur le site.
 #[Route('/api/testimonials')]
 class TestimonialController extends AbstractController
 {
@@ -19,6 +20,7 @@ class TestimonialController extends AbstractController
     #[Route('', name: 'public_testimonials_list', methods: ['GET'])]
     public function index(TestimonialRepository $testimonialRepository): JsonResponse
     {
+        // Seuls les témoignages publiés sont exposés publiquement (les brouillons restent en admin)
         $testimonials = $testimonialRepository->findByStatus('published');
         $data = array_map(fn (Testimonial $t) => $this->serialize($t), $testimonials);
         return $this->json($data);

@@ -9,6 +9,16 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Représente un compte utilisateur du back-office (administrateur, éditeur, etc.).
+ *
+ * Cette entité sert à la fois de compte de connexion (via UserInterface, utilisée
+ * par le système de sécurité Symfony) et de fiche utilisateur affichée dans la
+ * page "Utilisateurs" de l'admin. Les droits fins (quels modules il peut voir)
+ * viennent de la relation avec l'entité Role ($role), tandis que $roles est la
+ * liste des rôles Symfony bruts (ROLE_USER, ROLE_ADMIN, ROLE_SUPER_ADMIN) utilisée
+ * par le firewall pour l'accès aux routes /api/admin.
+ */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_EMAIL', fields: ['email'])]
@@ -20,14 +30,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
+    // Identifiant de connexion (sert aussi d'identifiant "username" pour Symfony Security)
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank]
     #[Assert\Email]
     private ?string $email = null;
 
+    // Rôles Symfony bruts (ROLE_USER, ROLE_ADMIN, ROLE_SUPER_ADMIN...), utilisés par le firewall
     #[ORM\Column]
     private array $roles = [];
 
+    // Mot de passe déjà haché (jamais stocké en clair)
     #[ORM\Column]
     private ?string $password = null;
 
@@ -43,6 +56,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $avatar = null;
 
+    // Permet de désactiver un compte sans le supprimer
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
     private bool $isActive = true;
 
@@ -55,10 +69,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    // Rôle métier (permissions fines par module : newsletter, users, roles...) affiché dans la page Rôles.
+    // Différent de $roles ci-dessus qui, lui, est le rôle de sécurité Symfony.
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Role $role = null;
 
+    // Jeton temporaire utilisé pour le lien "mot de passe oublié"
     #[ORM\Column(length: 64, nullable: true)]
     private ?string $passwordResetToken = null;
 
@@ -74,6 +91,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getPasswordResetExpiresAt(): ?\DateTimeImmutable { return $this->passwordResetExpiresAt; }
     public function setPasswordResetExpiresAt(?\DateTimeImmutable $date): static { $this->passwordResetExpiresAt = $date; return $this; }
 
+    /**
+     * Vérifie que le jeton de réinitialisation de mot de passe existe encore
+     * et n'a pas expiré, avant d'autoriser le changement de mot de passe.
+     */
     public function isPasswordResetTokenValid(): bool
     {
         return $this->passwordResetToken !== null
@@ -81,12 +102,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             && $this->passwordResetExpiresAt > new \DateTimeImmutable();
     }
 
+    // Renseigne automatiquement la date de création à l'insertion en base
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
         $this->createdAt = new \DateTimeImmutable();
     }
 
+    // Renseigne automatiquement la date de mise à jour à chaque modification
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
@@ -109,11 +132,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    // Identifiant utilisé par Symfony Security pour retrouver l'utilisateur (ici : l'email)
     public function getUserIdentifier(): string
     {
         return $this->email ?? '';
     }
 
+    // Tout utilisateur authentifié a au minimum ROLE_USER, même si ce n'est pas stocké explicitement
     public function getRoles(): array
     {
         $roles = $this->roles;
@@ -138,6 +163,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    // Requis par l'interface Symfony ; rien à effacer car on ne stocke pas d'infos sensibles temporaires
     public function eraseCredentials(): void
     {
     }

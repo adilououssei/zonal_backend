@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
+// API publique (accès libre, voir security.yaml) : projets de l'ONG affichés sur le site.
 #[Route('/api/projects')]
 class ProjectController extends AbstractController
 {

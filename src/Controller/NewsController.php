@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
+// API publique (accès libre, voir security.yaml) : articles d'actualité affichés sur le site.
 #[Route('/api/news')]
 class NewsController extends AbstractController
 {
@@ -28,6 +29,7 @@ class NewsController extends AbstractController
     #[Route('/{id}', name: 'public_news_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(News $news, EntityManagerInterface $em): JsonResponse
     {
+        // Chaque consultation de l'article incrémente son compteur de vues
         $news->setViews($news->getViews() + 1);
         $em->flush();
         return $this->json($this->serializeNews($news));

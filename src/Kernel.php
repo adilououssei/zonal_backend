@@ -5,6 +5,8 @@ namespace App;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
 
+// Point d'entrée standard de l'application Symfony (configuration générée par
+// Symfony Flex). Rien de spécifique au projet à comprendre ici.
 class Kernel extends BaseKernel
 {
     use MicroKernelTrait;

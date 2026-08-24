@@ -9,6 +9,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+// Endpoint générique d'upload de fichiers utilisé par tous les formulaires admin
+// (images de couverture, logos, documents PDF...). Le fichier est stocké dans
+// public/uploads et l'URL publique est renvoyée pour être enregistrée sur
+// l'entité concernée (Event, News, Document, etc.).
 #[Route('/api/upload')]
 class UploadController extends AbstractController
 {
@@ -21,6 +25,7 @@ class UploadController extends AbstractController
             return $this->json(['error' => 'Aucun fichier envoyé.'], Response::HTTP_BAD_REQUEST);
         }
 
+        // Liste blanche des types de fichiers autorisés (images + documents bureautiques)
         $allowedMimeTypes = [
             'image/jpeg', 'image/png', 'image/webp', 'image/gif',
             'application/pdf',
@@ -36,6 +41,7 @@ class UploadController extends AbstractController
             return $this->json(['error' => 'Type de fichier non autorisé (jpeg, png, webp, gif, pdf, docx, xlsx, pptx).'], Response::HTTP_BAD_REQUEST);
         }
 
+        // Limite de taille plus stricte pour les images (5 Mo) que pour les documents (15 Mo)
         $maxSize = str_starts_with($file->getMimeType(), 'image/') ? 5 * 1024 * 1024 : 15 * 1024 * 1024;
 
         if ($file->getSize() > $maxSize) {
@@ -48,6 +54,7 @@ class UploadController extends AbstractController
             mkdir($uploadsDir, 0777, true);
         }
 
+        // Nom de fichier unique (date + suffixe aléatoire) pour éviter tout écrasement entre deux uploads
         $extension = $file->guessExtension() ?? 'jpg';
         $filename = sprintf('%s_%s.%s', date('Ymd'), bin2hex(random_bytes(8)), $extension);
 

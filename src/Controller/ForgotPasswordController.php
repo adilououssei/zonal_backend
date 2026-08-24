@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -16,6 +17,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 
+// Parcours "mot de passe oublié" : demande de réinitialisation par email, puis
+// changement du mot de passe via le jeton reçu par email.
 #[Route('/api')]
 class ForgotPasswordController extends AbstractController
 {
@@ -25,8 +28,11 @@ class ForgotPasswordController extends AbstractController
         UserRepository $repo,
         EntityManagerInterface $em,
         MailerInterface $mailer,
+        LoggerInterface $logger,
         #[Autowire(service: 'limiter.public_form')] RateLimiterFactory $publicFormLimiter,
+        #[Autowire('%env(FRONTEND_URL)%')] string $frontendUrl,
     ): JsonResponse {
+        // Limite le nombre de demandes par IP pour éviter le spam de cet endpoint
         if (!$publicFormLimiter->create($request->getClientIp())->consume(1)->isAccepted()) {
             return $this->json(['error' => 'Trop de demandes. Réessayez plus tard.'], Response::HTTP_TOO_MANY_REQUESTS);
         }
@@ -40,6 +46,8 @@ class ForgotPasswordController extends AbstractController
 
         $user = $repo->findOneBy(['email' => $email]);
         if (!$user) {
+            // Message volontairement identique que l'email existe ou non, pour ne pas
+            // permettre à quelqu'un de deviner quels emails sont enregistrés (énumération)
             return $this->json(['message' => 'Si cette adresse existe, un email de réinitialisation a été envoyé.']);
         }
 
@@ -55,10 +63,16 @@ class ForgotPasswordController extends AbstractController
                 ->subject('Réinitialisation de mot de passe – ZONAL')
                 ->html($this->renderView('emails/reset_password.html.twig', [
                     'user' => $user,
-                    'resetUrl' => "http://localhost:5173/reset-password/$token",
+                    'resetUrl' => rtrim($frontendUrl, '/') . "/reset-password/$token",
                 ]));
             $mailer->send($email);
-        } catch (\Exception) {
+        } catch (\Exception $e) {
+            // On ne révèle pas l'échec au client (éviter l'énumération d'emails),
+            // mais on le trace : avant ce correctif, ces échecs étaient invisibles.
+            $logger->error('Échec de l\'envoi de l\'email de réinitialisation de mot de passe', [
+                'email' => $user->getEmail(),
+                'exception' => $e,
+            ]);
         }
 
         return $this->json(['message' => 'Si cette adresse existe, un email de réinitialisation a été envoyé.']);
@@ -72,6 +86,7 @@ class ForgotPasswordController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         #[Autowire(service: 'limiter.login')] RateLimiterFactory $loginLimiter,
     ): JsonResponse {
+        // Réutilise le même limiteur que la connexion pour empêcher un bruteforce du jeton
         if (!$loginLimiter->create($request->getClientIp())->consume(1)->isAccepted()) {
             return $this->json(['error' => 'Trop de tentatives. Réessayez plus tard.'], Response::HTTP_TOO_MANY_REQUESTS);
         }
@@ -90,6 +105,7 @@ class ForgotPasswordController extends AbstractController
         }
 
         $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
+        // Le jeton est à usage unique : on l'invalide immédiatement après utilisation
         $user->setPasswordResetToken(null);
         $user->setPasswordResetExpiresAt(null);
         $em->flush();

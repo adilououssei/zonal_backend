@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
+// API publique (accès libre, voir security.yaml) : galerie photo affichée sur le site.
 #[Route('/api/gallery')]
 class GalleryController extends AbstractController
 {
@@ -40,6 +41,7 @@ class GalleryController extends AbstractController
             'category' => $gallery->getCategory(),
             'date' => $gallery->getDate()?->format('Y-m-d'),
             'images' => $images,
+            // Nombre de photos de l'album ; 1 par défaut quand il n'y a qu'une image unique (pas d'album)
             'imageCount' => $images ? count($images) : 1,
         ];
     }

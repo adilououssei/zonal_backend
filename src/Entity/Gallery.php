@@ -7,11 +7,17 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Élément de la galerie photo publique (page "Galerie"). $src est l'image
+ * principale/miniature ; $images est une liste optionnelle d'images
+ * supplémentaires quand l'élément représente un album plutôt qu'une photo unique.
+ */
 #[ORM\Entity(repositoryClass: GalleryRepository::class)]
 #[ORM\Table(name: '`gallery`')]
 #[ORM\HasLifecycleCallbacks]
 class Gallery
 {
+    // Utilisateur admin ayant créé l'élément (traçabilité) ; conservé même si le compte est supprimé (SET NULL)
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $createdBy = null;
@@ -24,6 +30,7 @@ class Gallery
     #[Assert\NotBlank]
     private ?string $title = null;
 
+    // Image principale / miniature affichée dans la grille de la galerie
     #[ORM\Column(length: 500)]
     #[Assert\NotBlank]
     private ?string $src = null;
@@ -34,9 +41,11 @@ class Gallery
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $date = null;
 
+    // Images supplémentaires si l'élément est un album (liste de chemins)
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $images = null;
 
+    // Traduction anglaise du titre
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $titleEn = null;
 

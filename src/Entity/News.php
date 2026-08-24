@@ -7,11 +7,18 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Article d'actualité publié sur le site (page "Actualités"). Les champs
+ * suffixés "En" contiennent la traduction anglaise, utilisée quand le
+ * visiteur consulte le site en anglais. $views compte les consultations
+ * de l'article (incrémenté côté public à chaque affichage).
+ */
 #[ORM\Entity(repositoryClass: NewsRepository::class)]
 #[ORM\Table(name: '`news`')]
 #[ORM\HasLifecycleCallbacks]
 class News
 {
+    // Utilisateur admin ayant créé l'article (traçabilité) ; conservé même si le compte est supprimé (SET NULL)
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $createdBy = null;
@@ -24,6 +31,7 @@ class News
     #[Assert\NotBlank]
     private ?string $title = null;
 
+    // Court résumé affiché dans les listes/cartes d'articles
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $excerpt = null;
 
@@ -44,12 +52,15 @@ class News
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $coverImage = null;
 
+    // Liste de chemins d'images additionnelles (galerie photo de l'article)
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $gallery = null;
 
+    // Nombre de consultations, incrémenté à chaque affichage public de l'article
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     private int $views = 0;
 
+    // --- Traductions anglaises ---
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $titleEn = null;
 

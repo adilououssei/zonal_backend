@@ -4,7 +4,9 @@ namespace App\Controller\Admin;
 
 use App\Entity\Event;
 use App\Repository\EventRepository;
+use App\Service\DeepLTranslator;
 use App\Service\LocaleHelper;
+use App\Service\NewsletterNotifier;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,12 +14,39 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+// CRUD admin des événements. À la création, un email est envoyé aux abonnés
+// newsletter (NewsletterNotifier) et les champs anglais manquants sont
+// traduits automatiquement (DeepLTranslator) si le service est configuré.
 #[Route('/api/admin/events')]
 class EventController extends AbstractController
 {
     public function __construct(
         private LocaleHelper $localeHelper,
+        private NewsletterNotifier $newsletterNotifier,
+        private DeepLTranslator $translator,
     ) {
+    }
+
+    /**
+     * Remplit automatiquement les champs *En manquants par traduction FR -> EN,
+     * pour éviter la double saisie manuelle par l'administrateur.
+     */
+    private function autoTranslate(Event $event): void
+    {
+        if (!$this->translator->isConfigured()) return;
+
+        if (!$event->getTitleEn() && $event->getTitle()) {
+            $event->setTitleEn($this->translator->translateToEnglish($event->getTitle()));
+        }
+        if (!$event->getDescriptionEn() && $event->getDescription()) {
+            $event->setDescriptionEn($this->translator->translateToEnglish($event->getDescription(), isHtml: true));
+        }
+        if (!$event->getLocationEn() && $event->getLocation()) {
+            $event->setLocationEn($this->translator->translateToEnglish($event->getLocation()));
+        }
+        if (!$event->getCategoryEn() && $event->getCategory()) {
+            $event->setCategoryEn($this->translator->translateToEnglish($event->getCategory()));
+        }
     }
     #[Route('', name: 'admin_events_list', methods: ['GET'])]
     public function index(EventRepository $eventRepository): JsonResponse
@@ -62,12 +91,33 @@ class EventController extends AbstractController
             return $this->json(['error' => 'Format de date invalide (attendu: YYYY-MM-DD).'], Response::HTTP_BAD_REQUEST);
         }
 
+        // Si l'admin ne fournit pas de statut, on le déduit de la date (voir computeStatusFromDate)
         $event->setStatus(isset($data['status']) ? $data['status'] : $this->computeStatusFromDate($event->getDate()));
+
+        $this->autoTranslate($event);
 
         $em->persist($event);
         $em->flush();
 
+        // Notifie tous les abonnés actifs de la newsletter par email
+        $this->newsletterNotifier->notifyNewContent(
+            'Nouvel événement',
+            $event->getTitle(),
+            $this->excerptFromHtml($event->getDescription()),
+            '/events/' . $event->getId(),
+            $event->getCoverImage(),
+        );
+
         return $this->json($this->serializeEvent($event), Response::HTTP_CREATED);
+    }
+
+    // Extrait un court résumé en texte brut à partir d'une description HTML (pour l'email de notification)
+    private function excerptFromHtml(?string $html, int $maxLength = 160): ?string
+    {
+        if (!$html) return null;
+        $text = trim(strip_tags($html));
+        if ($text === '') return null;
+        return mb_strlen($text) > $maxLength ? mb_substr($text, 0, $maxLength) . '…' : $text;
     }
 
     #[Route('/{id}', name: 'admin_events_update', methods: ['PUT'], requirements: ['id' => '\d+'])]
@@ -100,8 +150,11 @@ class EventController extends AbstractController
         if (isset($data['status'])) {
             $event->setStatus($data['status']);
         } else {
+            // Statut recalculé automatiquement si la date a changé et qu'aucun statut n'est fourni
             $event->setStatus($this->computeStatusFromDate($event->getDate()));
         }
+
+        $this->autoTranslate($event);
 
         $em->flush();
 
@@ -148,6 +201,8 @@ class EventController extends AbstractController
         ];
     }
 
+    // Contrairement à l'API publique, l'admin peut aussi imposer un statut manuel
+    // (via $data['status']) ; cette fonction ne sert que de valeur par défaut.
     private function computeStatusFromDate(?\DateTimeImmutable $date): string
     {
         if (!$date) return 'À venir';

@@ -7,11 +7,18 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * Témoignage affiché sur le site (avis d'un bénéficiaire, partenaire, etc.).
+ * $rating est une note de 1 à 5. $status permet de publier/dépublier un
+ * témoignage sans le supprimer. Les champs suffixés "En" contiennent la
+ * traduction anglaise.
+ */
 #[ORM\Entity(repositoryClass: TestimonialRepository::class)]
 #[ORM\Table(name: '`testimonial`')]
 #[ORM\HasLifecycleCallbacks]
 class Testimonial
 {
+    // Utilisateur admin ayant créé le témoignage (traçabilité) ; conservé même si le compte est supprimé (SET NULL)
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $createdBy = null;
@@ -24,6 +31,7 @@ class Testimonial
     #[Assert\NotBlank]
     private ?string $author = null;
 
+    // Fonction/rôle de l'auteur du témoignage (ex: "Bénéficiaire", "Partenaire")
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $role = null;
 
@@ -41,9 +49,11 @@ class Testimonial
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $date = null;
 
+    // "published" ou "draft" : contrôle l'affichage sur le site public
     #[ORM\Column(length: 20, options: ['default' => 'published'])]
     private string $status = 'published';
 
+    // --- Traductions anglaises ---
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $authorEn = null;
 
@@ -63,6 +73,7 @@ class Testimonial
     public function onPrePersist(): void
     {
         $this->createdAt = new \DateTimeImmutable();
+        // Si aucune date n'est fournie par l'admin, on prend la date de création par défaut
         if ($this->date === null) {
             $this->date = new \DateTimeImmutable();
         }

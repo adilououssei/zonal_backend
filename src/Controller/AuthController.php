@@ -16,6 +16,9 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+// Authentification : connexion, inscription publique et lecture du profil courant.
+// Le jeton renvoyé (JWT) est ensuite vérifié par JwtAuthenticator sur chaque
+// requête protégée (voir security.yaml, firewall "api").
 class AuthController extends AbstractController
 {
     private const ALGORITHM = 'HS256';
@@ -28,6 +31,7 @@ class AuthController extends AbstractController
         EntityManagerInterface $em,
         #[Autowire(service: 'limiter.login')] RateLimiterFactory $loginLimiter,
     ): JsonResponse {
+        // Limite le nombre de tentatives de connexion par IP pour se prémunir du bruteforce
         $limit = $loginLimiter->create($request->getClientIp())->consume(1);
         if (!$limit->isAccepted()) {
             return $this->json(
@@ -135,6 +139,7 @@ class AuthController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
+    // Retourne les infos de l'utilisateur actuellement authentifié (token JWT valide requis)
     #[Route('/api/me', name: 'api_me', methods: ['GET'])]
     public function me(): JsonResponse
     {
@@ -162,6 +167,8 @@ class AuthController extends AbstractController
         ]);
     }
 
+    // Génère le jeton JWT signé, valable 24h, transmis ensuite dans l'en-tête
+    // "Authorization: Bearer <token>" par le front pour chaque requête protégée.
     private function generateToken(User $user): string
     {
         $now = new \DateTimeImmutable();
