@@ -2,6 +2,19 @@
 framework:
     secret: '%env(APP_SECRET)%'
 
+    # Le backend tourne derrière deux proxies (Nginx du VPS en HTTPS, puis
+    # Nginx du conteneur "backend-nginx" en HTTP interne) : sans ça, Symfony
+    # ignore l'en-tête X-Forwarded-Proto envoyé par le premier et croit que
+    # chaque requête arrive en HTTP brut. Conséquence concrète : les URLs
+    # absolues générées dans le code (ex: UploadController) se retrouvaient
+    # en "http://..." au lieu de "https://api.zonalchd.org/...", bloquées
+    # ensuite par le navigateur en "Mixed Content" sur le site en HTTPS.
+    # 'REMOTE_ADDR' fait confiance dynamiquement à l'IP qui se connecte
+    # directement à PHP-FPM (l'IP du conteneur backend-nginx, variable selon
+    # le réseau Docker), plutôt qu'à une IP fixe qu'on ne peut pas prédire.
+    trusted_proxies: '127.0.0.1,REMOTE_ADDR'
+    trusted_headers: ['x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto', 'x-forwarded-port']
+
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
