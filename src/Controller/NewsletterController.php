@@ -101,7 +101,7 @@ class NewsletterController extends AbstractController
     ): void {
         try {
             $email = (new Email())
-                ->from('noreply@zonalong.org')
+                ->from('noreply@zonalchd.org')
                 ->to($subscriber->getEmail())
                 ->subject('Confirmation d\'abonnement à la newsletter – ZONAL')
                 ->html($this->renderView('emails/newsletter_confirmation.html.twig', [

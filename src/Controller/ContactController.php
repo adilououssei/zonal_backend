@@ -47,7 +47,7 @@ class ContactController extends AbstractController
 
         try {
             $email = (new Email())
-                ->from('noreply@zonalong.org')
+                ->from('noreply@zonalchd.org')
                 ->replyTo($email)
                 ->to('zonal.ch@gmail.com')
                 ->subject("[Contact ZONAL] $subject")

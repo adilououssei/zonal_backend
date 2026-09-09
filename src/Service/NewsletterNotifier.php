@@ -51,7 +51,7 @@ class NewsletterNotifier
         foreach ($subscribers as $subscriber) {
             try {
                 $email = (new Email())
-                    ->from('noreply@zonalong.org')
+                    ->from('noreply@zonalchd.org')
                     ->to($subscriber->getEmail())
                     ->subject("$contentType : $title – ZONAL")
                     ->html($this->twig->render('emails/newsletter_notification.html.twig', [

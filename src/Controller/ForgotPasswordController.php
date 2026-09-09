@@ -58,7 +58,7 @@ class ForgotPasswordController extends AbstractController
 
         try {
             $email = (new Email())
-                ->from('noreply@zonalong.org')
+                ->from('noreply@zonalchd.org')
                 ->to($user->getEmail())
                 ->subject('Réinitialisation de mot de passe – ZONAL')
                 ->html($this->renderView('emails/reset_password.html.twig', [

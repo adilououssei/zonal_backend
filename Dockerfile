@@ -40,7 +40,14 @@ RUN composer install --no-dev --no-interaction --no-scripts --no-autoloader
 
 COPY . .
 
+# importmap:install télécharge/copie les assets JS déclarés dans importmap.php
+# (ex: @hotwired/stimulus) dans assets/vendor/ — ce dossier est gitignoré et
+# n'existe donc que sur les machines où la commande a déjà tourné (dev local).
+# Sans cette étape, tout template Twig qui étend base.html.twig (ce qui inclut
+# les 4 emails du site : contact, confirmation/notification newsletter, reset
+# password) plante avec "vendor asset is missing" au moment de l'envoi.
 RUN composer dump-autoload --no-dev --optimize \
+    && php bin/console importmap:install \
     && mkdir -p var public/uploads \
     && chown -R www-data:www-data var public/uploads \
     && chmod -R 775 var public/uploads
