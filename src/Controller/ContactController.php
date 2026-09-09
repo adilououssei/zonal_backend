@@ -49,7 +49,7 @@ class ContactController extends AbstractController
             $email = (new Email())
                 ->from('noreply@zonalchd.org')
                 ->replyTo($email)
-                ->to('zonal.ch@gmail.com')
+                ->to('zonal.chd@gmail.com')
                 ->subject("[Contact ZONAL] $subject")
                 ->html($this->renderView('emails/contact.html.twig', [
                     'name' => $name,
