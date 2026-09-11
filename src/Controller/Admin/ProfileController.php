@@ -120,6 +120,11 @@ class ProfileController extends AbstractController
             'phone' => $user->getPhone(),
             'avatar' => $user->getAvatar(),
             'roles' => $user->getRoles(),
+            'roleEntity' => $user->getRole() ? [
+                'id' => $user->getRole()->getId(),
+                'name' => $user->getRole()->getName(),
+                'permissions' => $user->getRole()->getPermissions(),
+            ] : null,
             'isActive' => $user->isActive(),
             'lastLogin' => $user->getLastLoginAt()?->format('d/m/Y H:i'),
             'createdAt' => $user->getCreatedAt()?->format('c'),

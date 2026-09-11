@@ -13,8 +13,14 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 // Gestion des rôles métier (page "Rôles" de l'admin) : création de rôles
-// personnalisés et attribution des permissions par module. Réservé au
-// ROLE_SUPER_ADMIN.
+// personnalisés et attribution des permissions par module. Accès piloté par
+// la matrice de permissions comme les autres modules (voir Entity/Role et
+// ModulePermissionVoter) : le super administrateur y accède toujours, et
+// tout autre utilisateur seulement si son rôle métier a la permission
+// "roles". À noter : accorder la permission "roles" à un rôle revient à
+// autoriser quiconque l'ayant à modifier la matrice de n'importe quel rôle,
+// y compris le sien — un choix de confiance assumé par le super
+// administrateur qui l'accorde, comme pour toute autre permission.
 //
 // Important : la liste des modules ci-dessous (permissions()) est la seule
 // source de vérité de ce qui est cochable dans la page Rôles. Quand une
@@ -22,7 +28,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 // pour qu'elle apparaisse dans la matrice de permissions - sinon le module
 // existera dans le code mais restera invisible sur cette page.
 #[Route('/api/admin/roles')]
-#[IsGranted('ROLE_SUPER_ADMIN')]
+#[IsGranted('MODULE_ROLES')]
 class RoleController extends AbstractController
 {
     #[Route('', name: 'admin_roles_list', methods: ['GET'])]

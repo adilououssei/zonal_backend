@@ -15,21 +15,26 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-// Gestion admin des comptes utilisateurs (page "Utilisateurs"). Réservé au
-// ROLE_SUPER_ADMIN. Le compte super administrateur est protégé en dur ici
-// (voir update/delete/toggleStatus) : personne, pas même un autre
-// ROLE_SUPER_ADMIN, ne peut le modifier, le désactiver ou le supprimer depuis
-// cette page. Pour modifier son propre profil, le super administrateur passe
-// par ProfileController (/api/admin/profile), qui n'a pas cette restriction.
+// Gestion admin des comptes utilisateurs (page "Utilisateurs"). Accès piloté
+// par la matrice de permissions comme les autres modules (voir Entity/Role et
+// ModulePermissionVoter) : le super administrateur y accède toujours, et tout
+// autre utilisateur seulement si son rôle métier a la permission "users".
+// Le compte super administrateur reste malgré tout protégé en dur ici (voir
+// update/delete/toggleStatus) : personne, même avec la permission "users",
+// ne peut le modifier, le désactiver ou le supprimer depuis cette page. Pour
+// modifier son propre profil, le super administrateur passe par
+// ProfileController (/api/admin/profile), qui n'a pas cette restriction.
 //
 // Tout utilisateur créé ici reçoit uniquement ROLE_USER : il n'y a pas de
-// "niveau d'accès" à choisir. Ce qu'il peut voir et faire dans le back-office
-// dépend entièrement du rôle métier qu'on lui attribue via $data['roleId']
-// (voir Entity/Role, RoleController et ModulePermissionVoter) — seul le
-// compte super administrateur, créé une fois via la commande CLI
+// "niveau d'accès" à choisir, et cette API ne permet jamais d'attribuer
+// ROLE_SUPER_ADMIN (impossible même pour un super administrateur qui
+// l'utiliserait). Ce qu'un utilisateur peut voir et faire dans le
+// back-office dépend entièrement du rôle métier qu'on lui attribue via
+// $data['roleId'] (voir Entity/Role, RoleController et ModulePermissionVoter)
+// — seul le compte super administrateur, créé une fois via la commande CLI
 // app:create-super-admin, a ROLE_SUPER_ADMIN et contourne cette matrice.
 #[Route('/api/admin/users')]
-#[IsGranted('ROLE_SUPER_ADMIN')]
+#[IsGranted('MODULE_USERS')]
 class UserController extends AbstractController
 {
     #[Route('', name: 'admin_users_list', methods: ['GET'])]
