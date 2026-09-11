@@ -15,12 +15,13 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 // Alimente la page d'accueil de l'admin (compteurs, derniers contenus ajoutés,
-// graphiques). Accessible à tout utilisateur ROLE_ADMIN (voir security.yaml) ;
-// il n'y a pas de permission "dashboard" bloquante côté serveur, seul le menu
-// est masqué côté front si la permission est désactivée.
+// graphiques). Accessible au super administrateur, ou à tout utilisateur dont
+// le rôle métier a la permission "dashboard" (voir ModulePermissionVoter).
 #[Route('/api/admin/dashboard')]
+#[IsGranted('MODULE_DASHBOARD')]
 class DashboardController extends AbstractController
 {
     #[Route('/stats', name: 'admin_dashboard_stats', methods: ['GET'])]

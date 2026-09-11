@@ -13,11 +13,13 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 // CRUD admin des projets. À la création, un email est envoyé aux abonnés
 // newsletter (NewsletterNotifier) et les champs anglais manquants sont
 // traduits automatiquement (DeepLTranslator) si le service est configuré.
 #[Route('/api/admin/projects')]
+#[IsGranted('MODULE_PROJECTS')]
 class ProjectController extends AbstractController
 {
     public function __construct(

@@ -10,10 +10,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 // CRUD admin des documents téléchargeables (le fichier lui-même est envoyé au
 // préalable via UploadController, seul son chemin est stocké ici).
 #[Route('/api/admin/documents')]
+#[IsGranted('MODULE_DOCUMENTS')]
 class DocumentController extends AbstractController
 {
     #[Route('', name: 'admin_documents_list', methods: ['GET'])]

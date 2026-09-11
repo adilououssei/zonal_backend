@@ -14,10 +14,12 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * Cette entité sert à la fois de compte de connexion (via UserInterface, utilisée
  * par le système de sécurité Symfony) et de fiche utilisateur affichée dans la
- * page "Utilisateurs" de l'admin. Les droits fins (quels modules il peut voir)
- * viennent de la relation avec l'entité Role ($role), tandis que $roles est la
- * liste des rôles Symfony bruts (ROLE_USER, ROLE_ADMIN, ROLE_SUPER_ADMIN) utilisée
- * par le firewall pour l'accès aux routes /api/admin.
+ * page "Utilisateurs" de l'admin. Les droits fins (quels modules il peut voir
+ * et utiliser via /api/admin/*) viennent entièrement de la relation avec
+ * l'entité Role ($role) et de sa matrice de permissions (voir
+ * ModulePermissionVoter). $roles ne contient que ROLE_USER (tout compte créé
+ * depuis la page "Utilisateurs") ou ROLE_SUPER_ADMIN (le compte unique et
+ * protégé créé via app:create-super-admin, qui contourne toujours la matrice).
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -36,7 +38,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Email]
     private ?string $email = null;
 
-    // Rôles Symfony bruts (ROLE_USER, ROLE_ADMIN, ROLE_SUPER_ADMIN...), utilisés par le firewall
+    // Rôles Symfony bruts : ROLE_USER (tout compte normal) ou ROLE_SUPER_ADMIN
     #[ORM\Column]
     private array $roles = [];
 

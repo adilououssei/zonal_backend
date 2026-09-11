@@ -21,24 +21,17 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 // ROLE_SUPER_ADMIN, ne peut le modifier, le désactiver ou le supprimer depuis
 // cette page. Pour modifier son propre profil, le super administrateur passe
 // par ProfileController (/api/admin/profile), qui n'a pas cette restriction.
+//
+// Tout utilisateur créé ici reçoit uniquement ROLE_USER : il n'y a pas de
+// "niveau d'accès" à choisir. Ce qu'il peut voir et faire dans le back-office
+// dépend entièrement du rôle métier qu'on lui attribue via $data['roleId']
+// (voir Entity/Role, RoleController et ModulePermissionVoter) — seul le
+// compte super administrateur, créé une fois via la commande CLI
+// app:create-super-admin, a ROLE_SUPER_ADMIN et contourne cette matrice.
 #[Route('/api/admin/users')]
 #[IsGranted('ROLE_SUPER_ADMIN')]
 class UserController extends AbstractController
 {
-    private const ASSIGNABLE_ROLES = ['ROLE_USER', 'ROLE_ADMIN', 'ROLE_SUPER_ADMIN'];
-
-    /**
-     * Ne garde que les rôles connus de l'application : empêche l'injection
-     * d'un rôle arbitraire même par un ROLE_SUPER_ADMIN via un payload malformé.
-     */
-    private function sanitizeRoles(mixed $roles): array
-    {
-        if (!is_array($roles)) {
-            return ['ROLE_USER'];
-        }
-        $roles = array_values(array_intersect(self::ASSIGNABLE_ROLES, $roles));
-        return $roles ?: ['ROLE_USER'];
-    }
     #[Route('', name: 'admin_users_list', methods: ['GET'])]
     public function index(UserRepository $userRepository): JsonResponse
     {
@@ -74,7 +67,7 @@ class UserController extends AbstractController
         $user = new User();
         $user->setEmail($data['email']);
         $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
-        $user->setRoles($this->sanitizeRoles($data['roles'] ?? ['ROLE_USER']));
+        $user->setRoles(['ROLE_USER']);
         $user->setFirstName($data['firstName'] ?? null);
         $user->setLastName($data['lastName'] ?? null);
         $user->setPhone($data['phone'] ?? null);
@@ -128,7 +121,6 @@ class UserController extends AbstractController
             $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
         }
 
-        if (isset($data['roles'])) $user->setRoles($this->sanitizeRoles($data['roles']));
         if (isset($data['firstName'])) $user->setFirstName($data['firstName']);
         if (isset($data['lastName'])) $user->setLastName($data['lastName']);
         if (isset($data['phone'])) $user->setPhone($data['phone']);
@@ -188,7 +180,7 @@ class UserController extends AbstractController
             'phone' => $user->getPhone(),
             'avatar' => $user->getAvatar(),
             'roles' => $user->getRoles(),
-            'role' => $this->formatRoleName($user->getRoles()),
+            'role' => $this->formatRoleName($user),
             'roleEntity' => $user->getRole() ? [
                 'id' => $user->getRole()->getId(),
                 'name' => $user->getRole()->getName(),
@@ -202,11 +194,12 @@ class UserController extends AbstractController
         ];
     }
 
-    // Libellé de rôle affiché dans la colonne "Rôle" de la liste des utilisateurs
-    private function formatRoleName(array $roles): string
+    // Libellé de rôle affiché dans la colonne "Rôle" de la liste des utilisateurs :
+    // le rôle métier choisi par le super administrateur (page "Rôles"), ou
+    // "Super Admin" pour le compte protégé qui n'en a pas besoin.
+    private function formatRoleName(User $user): string
     {
-        if (in_array('ROLE_SUPER_ADMIN', $roles)) return 'Super Admin';
-        if (in_array('ROLE_ADMIN', $roles)) return 'Administrateur';
-        return 'Éditeur';
+        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles(), true)) return 'Super Admin';
+        return $user->getRole()?->getName() ?? 'Aucun rôle';
     }
 }

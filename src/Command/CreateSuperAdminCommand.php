@@ -142,8 +142,9 @@ EOT
         }
 
         // ROLE_SUPER_ADMIN pour les vérifications #[IsGranted('ROLE_SUPER_ADMIN')] (UserController,
-        // RoleController, SettingsController...), ROLE_ADMIN pour passer le firewall /api/admin
-        $user->setRoles(['ROLE_SUPER_ADMIN', 'ROLE_ADMIN']);
+        // RoleController, SettingsController...) ; ce rôle fait aussi voter systématiquement
+        // "oui" dans ModulePermissionVoter, donc le super admin a toujours accès à tout module.
+        $user->setRoles(['ROLE_SUPER_ADMIN']);
         $user->setRole($role);
 
         if ($needsPassword) {

@@ -8,18 +8,13 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 // Gestion admin des abonnés à la newsletter (liste + suppression). À ne pas
 // confondre avec le NewsletterController public (App\Controller) qui gère
 // l'inscription/désinscription des visiteurs.
-//
-// Note : ce contrôleur n'a pas d'attribut #[IsGranted(...)] au niveau de la
-// classe (contrairement à RoleController ou SettingsController) : l'accès est
-// seulement protégé par la règle générale "/api/admin -> ROLE_ADMIN" du
-// firewall (security.yaml). La permission fine "newsletter" de la matrice de
-// rôles (Role::$permissions) ne sert donc aujourd'hui qu'à masquer le lien
-// dans le menu admin côté front ; elle n'est pas vérifiée ici côté serveur.
 #[Route('/api/admin/newsletter')]
+#[IsGranted('MODULE_NEWSLETTER')]
 class NewsletterController extends AbstractController
 {
     #[Route('/subscribers', name: 'admin_newsletter_subscribers', methods: ['GET'])]

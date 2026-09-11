@@ -38,7 +38,10 @@ security:
         - { path: ^/api/contact, roles: PUBLIC_ACCESS }
         - { path: ^/api/stats, roles: PUBLIC_ACCESS }
         - { path: ^/api/settings, roles: PUBLIC_ACCESS }
-        - { path: ^/api/admin, roles: ROLE_ADMIN }
+        # L'accès fin par module (events, news, users, roles...) est vérifié
+        # dans chaque contrôleur admin via #[IsGranted('MODULE_XXX')], à partir
+        # de la matrice de permissions du rôle métier (voir ModulePermissionVoter).
+        - { path: ^/api/admin, roles: ROLE_USER }
         - { path: ^/api, roles: ROLE_USER }
 
 when@test:

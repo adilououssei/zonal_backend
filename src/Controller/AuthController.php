@@ -31,8 +31,14 @@ class AuthController extends AbstractController
         EntityManagerInterface $em,
         #[Autowire(service: 'limiter.login')] RateLimiterFactory $loginLimiter,
     ): JsonResponse {
-        // Limite le nombre de tentatives de connexion par IP pour se prémunir du bruteforce
-        $limit = $loginLimiter->create($request->getClientIp())->consume(1);
+        // Limite le nombre de tentatives de connexion par IP pour se prémunir du bruteforce.
+        // On consomme le quota ici pour bloquer un enchaînement rapide d'essais, mais on le
+        // restitue plus bas en cas de succès (voir $loginLimiterInstance->reset()) : seules
+        // les tentatives avec un mauvais mot de passe doivent compter, pas les reconnexions
+        // légitimes (un utilisateur qui se connecte/déconnecte plusieurs fois ne doit jamais
+        // se retrouver bloqué par ce garde-fou).
+        $loginLimiterInstance = $loginLimiter->create($request->getClientIp());
+        $limit = $loginLimiterInstance->consume(1);
         if (!$limit->isAccepted()) {
             return $this->json(
                 ['error' => 'Trop de tentatives. Réessayez plus tard.'],
@@ -56,6 +62,9 @@ class AuthController extends AbstractController
         if (!$user->isActive()) {
             return $this->json(['error' => 'Compte désactivé.'], Response::HTTP_FORBIDDEN);
         }
+
+        // Connexion réussie : on ne pénalise pas cette IP pour une reconnexion légitime.
+        $loginLimiterInstance->reset();
 
         $user->setLastLoginAt(new \DateTimeImmutable());
         $em->flush();

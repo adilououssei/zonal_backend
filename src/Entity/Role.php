@@ -13,14 +13,17 @@ use Symfony\Component\Validator\Constraints as Assert;
  * "Éditeur") et une liste de permissions par module (dashboard, events, news,
  * newsletter, users, roles, settings...) stockée en JSON.
  *
- * Attention : ceci est distinct des rôles de sécurité Symfony (ROLE_USER,
- * ROLE_ADMIN, ROLE_SUPER_ADMIN) définis sur User::$roles, qui contrôlent
- * l'accès aux routes API. Ce Role sert uniquement à afficher/masquer les
- * modules du menu admin selon le module list défini dans RoleController::permissions().
+ * Distinct des rôles de sécurité Symfony (ROLE_USER, ROLE_SUPER_ADMIN) définis
+ * sur User::$roles, qui ne servent qu'à l'authentification. C'est CE Role qui
+ * détermine à la fois les modules visibles dans le menu admin (voir
+ * AdminLayout.tsx) et l'accès réel aux routes /api/admin/* correspondantes
+ * (voir ModulePermissionVoter) : sans la permission "events" par exemple,
+ * l'utilisateur ne voit pas le lien "Événements" ET reçoit un 403 s'il essaie
+ * d'appeler /api/admin/events directement.
  *
  * Le compte Super Administrateur contourne systématiquement cette liste de
- * permissions côté front (voir AdminLayout.tsx) : il a toujours accès à tout,
- * même à un module ajouté après coup et pas encore coché ici.
+ * permissions (front ET backend) : il a toujours accès à tout, même à un
+ * module ajouté après coup et pas encore coché ici.
  */
 #[ORM\Entity(repositoryClass: RoleRepository::class)]
 #[ORM\Table(name: '`role`')]

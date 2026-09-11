@@ -71,7 +71,7 @@ class AppFixtures extends Fixture
         $editorUser->setPassword(
             $this->passwordHasher->hashPassword($editorUser, 'editor123')
         );
-        $editorUser->setRoles(['ROLE_ADMIN']);
+        $editorUser->setRoles(['ROLE_USER']);
         $editorUser->setRole($adminRole);
         $editorUser->setFirstName('Jean');
         $editorUser->setLastName('Martin');
