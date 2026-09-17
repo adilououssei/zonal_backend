@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
@@ -47,7 +48,7 @@ class ContactController extends AbstractController
 
         try {
             $email = (new Email())
-                ->from('noreply@zonalchd.org')
+                ->from(new Address('noreply@zonalchd.org', 'Zonal'))
                 ->replyTo($email)
                 ->to('zonal.chd@gmail.com')
                 ->subject("[Contact ZONAL] $subject")

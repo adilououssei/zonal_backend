@@ -6,6 +6,7 @@ use App\Repository\NewsletterRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Twig\Environment;
 
@@ -51,7 +52,7 @@ class NewsletterNotifier
         foreach ($subscribers as $subscriber) {
             try {
                 $email = (new Email())
-                    ->from('noreply@zonalchd.org')
+                    ->from(new Address('noreply@zonalchd.org', 'Zonal'))
                     ->to($subscriber->getEmail())
                     ->subject("$contentType : $title – ZONAL")
                     ->html($this->twig->render('emails/newsletter_notification.html.twig', [

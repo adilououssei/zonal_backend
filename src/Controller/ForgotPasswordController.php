@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -58,7 +59,7 @@ class ForgotPasswordController extends AbstractController
 
         try {
             $email = (new Email())
-                ->from('noreply@zonalchd.org')
+                ->from(new Address('noreply@zonalchd.org', 'Zonal'))
                 ->to($user->getEmail())
                 ->subject('Réinitialisation de mot de passe – ZONAL')
                 ->html($this->renderView('emails/reset_password.html.twig', [
