@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Newsletter;
 use App\Repository\NewsletterRepository;
+use App\Service\RecaptchaVerifier;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,6 +30,7 @@ class NewsletterController extends AbstractController
         EntityManagerInterface $em,
         MailerInterface $mailer,
         LoggerInterface $logger,
+        RecaptchaVerifier $recaptcha,
         #[Autowire(service: 'limiter.public_form')] RateLimiterFactory $publicFormLimiter,
         #[Autowire('%env(FRONTEND_URL)%')] string $frontendUrl,
     ): JsonResponse {
@@ -41,6 +43,12 @@ class NewsletterController extends AbstractController
         $email = $data['email'] ?? '';
 
         if (!filter_var($email, \FILTER_VALIDATE_EMAIL)) {
+            return $this->json(['error' => 'Adresse e-mail invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Même message d'erreur générique que la validation d'email ci-dessus : on
+        // évite de révéler à un bot que c'est spécifiquement reCAPTCHA qui a échoué.
+        if (!$recaptcha->verify($data['recaptchaToken'] ?? null, 'newsletter_subscribe')) {
             return $this->json(['error' => 'Adresse e-mail invalide.'], Response::HTTP_BAD_REQUEST);
         }
 
