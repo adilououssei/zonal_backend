@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\RecaptchaVerifier;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,6 +26,7 @@ class ContactController extends AbstractController
         Request $request,
         MailerInterface $mailer,
         LoggerInterface $logger,
+        RecaptchaVerifier $recaptcha,
         #[Autowire(service: 'limiter.public_form')] RateLimiterFactory $publicFormLimiter,
     ): JsonResponse {
         // Limite le nombre de messages par IP pour éviter le spam de ce formulaire
@@ -44,6 +46,12 @@ class ContactController extends AbstractController
 
         if (!filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             return $this->json(['error' => 'Adresse e-mail invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Case "Je ne suis pas un robot" (reCAPTCHA v2), visible côté frontend :
+        // le message explicite aide un vrai visiteur qui aurait oublié de la cocher.
+        if (!$recaptcha->verifyCheckbox($data['recaptchaToken'] ?? null)) {
+            return $this->json(['error' => 'Veuillez confirmer que vous n\'êtes pas un robot.'], Response::HTTP_BAD_REQUEST);
         }
 
         try {
