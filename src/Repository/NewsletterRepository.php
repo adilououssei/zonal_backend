@@ -30,6 +30,12 @@ class NewsletterRepository extends ServiceEntityRepository
         return $this->findOneBy(['unsubscribeToken' => $token]);
     }
 
+    // Utilisé pour retrouver l'inscription à partir du lien de confirmation envoyé par email
+    public function findByConfirmationToken(string $token): ?Newsletter
+    {
+        return $this->findOneBy(['confirmationToken' => $token]);
+    }
+
     // Abonnés actuellement actifs (non désinscrits), utilisé lors de l'envoi des notifications
     /** @return Newsletter[] */
     public function findActive(): array

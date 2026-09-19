@@ -40,6 +40,21 @@ class Newsletter
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $subscribedAt = null;
 
+    // Double opt-in : une inscription reste inactive tant que le propriétaire de
+    // l'adresse n'a pas cliqué sur le lien de confirmation reçu par email (un bot
+    // peut soumettre n'importe quelle adresse, mais pas lire cette boîte mail).
+    #[ORM\Column(length: 64, unique: true, nullable: true)]
+    private ?string $confirmationToken = null;
+
+    // Date d'envoi du dernier email de confirmation : limite les renvois (anti-harcèlement)
+    // et sert à faire expirer le lien.
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $confirmationSentAt = null;
+
+    // Renseignée à la première confirmation ; null = adresse jamais confirmée (en attente)
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $confirmedAt = null;
+
     public function getId(): ?int { return $this->id; }
 
     public function getEmail(): ?string { return $this->email; }
@@ -56,6 +71,18 @@ class Newsletter
 
     public function getSubscribedAt(): ?\DateTimeImmutable { return $this->subscribedAt; }
     public function setSubscribedAt(\DateTimeImmutable $subscribedAt): static { $this->subscribedAt = $subscribedAt; return $this; }
+
+    public function getConfirmationToken(): ?string { return $this->confirmationToken; }
+    public function setConfirmationToken(?string $confirmationToken): static { $this->confirmationToken = $confirmationToken; return $this; }
+
+    public function getConfirmationSentAt(): ?\DateTimeImmutable { return $this->confirmationSentAt; }
+    public function setConfirmationSentAt(?\DateTimeImmutable $confirmationSentAt): static { $this->confirmationSentAt = $confirmationSentAt; return $this; }
+
+    public function getConfirmedAt(): ?\DateTimeImmutable { return $this->confirmedAt; }
+    public function setConfirmedAt(?\DateTimeImmutable $confirmedAt): static { $this->confirmedAt = $confirmedAt; return $this; }
+
+    // Inscription jamais confirmée (ni active, ni désinscrite) : en attente du clic sur le lien email
+    public function isPending(): bool { return !$this->isActive && $this->confirmedAt === null; }
 
     // Renseigne automatiquement la date d'inscription et génère le jeton de désinscription si absent
     #[ORM\PrePersist]

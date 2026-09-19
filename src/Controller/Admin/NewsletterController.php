@@ -41,6 +41,8 @@ class NewsletterController extends AbstractController
             'email' => $subscriber->getEmail(),
             'name' => $subscriber->getName(),
             'isActive' => $subscriber->isActive(),
+            // pending = inscription jamais confirmée par email ; unsubscribed = s'est désinscrit
+            'status' => $subscriber->isActive() ? 'active' : ($subscriber->isPending() ? 'pending' : 'unsubscribed'),
             'subscribedAt' => $subscriber->getSubscribedAt()?->format('c'),
         ];
     }

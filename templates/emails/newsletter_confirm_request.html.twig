@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;padding:20px">
+  <div style="text-align:center;padding:30px 0;background:#0B6B3A;border-radius:12px 12px 0 0">
+    <img src="{{ absolute_url(asset('images/logoNoFont2.png')) }}" alt="ZONAL" style="height:50px">
+  </div>
+  <div style="padding:30px;background:#fff;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+    <h2 style="color:#111827;margin:0 0 10px">
+      {% if name %}
+        Bonjour {{ name }},
+      {% else %}
+        Bonjour,
+      {% endif %}
+    </h2>
+    <p style="color:#6b7280;line-height:1.6">
+      Quelqu'un a demandé l'inscription de cette adresse à la newsletter de ZONAL.
+      Pour finaliser votre inscription, confirmez-la en cliquant sur le bouton ci-dessous.
+    </p>
+    <p style="text-align:center;margin:28px 0">
+      <a href="{{ confirmUrl }}" style="display:inline-block;background:#0B6B3A;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:bold">
+        Confirmer mon inscription
+      </a>
+    </p>
+    <p style="color:#9ca3af;font-size:12px;line-height:1.6">
+      Ce lien est valable 7 jours. Si vous n'êtes pas à l'origine de cette demande,
+      ignorez simplement cet email : vous ne serez pas inscrit et ne recevrez rien d'autre.
+    </p>
+  </div>
+</div>
+{% endblock %}
