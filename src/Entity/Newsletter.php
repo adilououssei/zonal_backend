@@ -81,9 +81,6 @@ class Newsletter
     public function getConfirmedAt(): ?\DateTimeImmutable { return $this->confirmedAt; }
     public function setConfirmedAt(?\DateTimeImmutable $confirmedAt): static { $this->confirmedAt = $confirmedAt; return $this; }
 
-    // Inscription jamais confirmée (ni active, ni désinscrite) : en attente du clic sur le lien email
-    public function isPending(): bool { return !$this->isActive && $this->confirmedAt === null; }
-
     // Renseigne automatiquement la date d'inscription et génère le jeton de désinscription si absent
     #[ORM\PrePersist]
     public function onPrePersist(): void

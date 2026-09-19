@@ -66,6 +66,8 @@ class NewsletterController extends AbstractController
             return $this->json(['error' => 'Adresse e-mail invalide.'], Response::HTTP_BAD_REQUEST);
         }
 
+        $repo->purgeExpiredPending();
+
         $existing = $repo->findByEmail($email);
         if ($existing) {
             if ($existing->isActive()) {

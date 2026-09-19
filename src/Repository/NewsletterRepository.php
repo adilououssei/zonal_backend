@@ -36,6 +36,33 @@ class NewsletterRepository extends ServiceEntityRepository
         return $this->findOneBy(['confirmationToken' => $token]);
     }
 
+    // Abonnés visibles dans l'admin : ceux qui ont confirmé leur inscription (actifs, ou
+    // désinscrits ensuite). Les demandes jamais confirmées n'y figurent pas : ce sont
+    // en pratique des adresses soumises par des robots ou par erreur.
+    /** @return Newsletter[] */
+    public function findConfirmed(): array
+    {
+        return $this->createQueryBuilder('n')
+            ->andWhere('n.confirmedAt IS NOT NULL')
+            ->orderBy('n.confirmedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    // Supprime les demandes jamais confirmées après 7 jours (durée de validité du lien de
+    // confirmation), pour que les inscriptions soumises par des robots ne s'accumulent pas.
+    public function purgeExpiredPending(): void
+    {
+        $this->createQueryBuilder('n')
+            ->delete()
+            ->andWhere('n.isActive = false')
+            ->andWhere('n.confirmedAt IS NULL')
+            ->andWhere('COALESCE(n.confirmationSentAt, n.subscribedAt) < :limit')
+            ->setParameter('limit', new \DateTimeImmutable('-7 days'))
+            ->getQuery()
+            ->execute();
+    }
+
     // Abonnés actuellement actifs (non désinscrits), utilisé lors de l'envoi des notifications
     /** @return Newsletter[] */
     public function findActive(): array

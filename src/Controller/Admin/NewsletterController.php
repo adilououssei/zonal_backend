@@ -20,7 +20,7 @@ class NewsletterController extends AbstractController
     #[Route('/subscribers', name: 'admin_newsletter_subscribers', methods: ['GET'])]
     public function index(NewsletterRepository $repo): JsonResponse
     {
-        $subscribers = $repo->findBy([], ['subscribedAt' => 'DESC']);
+        $subscribers = $repo->findConfirmed();
         $data = array_map(fn (Newsletter $s) => $this->serialize($s), $subscribers);
         return $this->json($data);
     }
@@ -41,9 +41,8 @@ class NewsletterController extends AbstractController
             'email' => $subscriber->getEmail(),
             'name' => $subscriber->getName(),
             'isActive' => $subscriber->isActive(),
-            // pending = inscription jamais confirmée par email ; unsubscribed = s'est désinscrit
-            'status' => $subscriber->isActive() ? 'active' : ($subscriber->isPending() ? 'pending' : 'unsubscribed'),
-            'subscribedAt' => $subscriber->getSubscribedAt()?->format('c'),
+            // Date de confirmation (l'inscription n'existe pour l'équipe qu'à partir de là)
+            'subscribedAt' => ($subscriber->getConfirmedAt() ?? $subscriber->getSubscribedAt())?->format('c'),
         ];
     }
 }
