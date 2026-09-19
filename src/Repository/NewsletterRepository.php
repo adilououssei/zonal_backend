@@ -49,6 +49,17 @@ class NewsletterRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    // Nombre d'abonnés visibles dans l'admin (même critère que findConfirmed) : le compteur
+    // du dashboard doit toujours correspondre à la liste, donc sans les demandes non confirmées.
+    public function countConfirmed(): int
+    {
+        return (int) $this->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->andWhere('n.confirmedAt IS NOT NULL')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     // Supprime les demandes jamais confirmées après 7 jours (durée de validité du lien de
     // confirmation), pour que les inscriptions soumises par des robots ne s'accumulent pas.
     public function purgeExpiredPending(): void

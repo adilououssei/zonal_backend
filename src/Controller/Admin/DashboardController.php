@@ -6,11 +6,11 @@ use App\Entity\Document;
 use App\Entity\Event;
 use App\Entity\Gallery;
 use App\Entity\News;
-use App\Entity\Newsletter;
 use App\Entity\Partner;
 use App\Entity\Project;
 use App\Entity\Testimonial;
 use App\Entity\User;
+use App\Repository\NewsletterRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,7 +25,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     #[Route('/stats', name: 'admin_dashboard_stats', methods: ['GET'])]
-    public function stats(EntityManagerInterface $em): JsonResponse {
+    public function stats(EntityManagerInterface $em, NewsletterRepository $newsletterRepository): JsonResponse {
         $counts = [
             'totalProjects' => (int) $em->createQuery('SELECT COUNT(p) FROM ' . Project::class . ' p')->getSingleScalarResult(),
             'totalEvents' => (int) $em->createQuery('SELECT COUNT(e) FROM ' . Event::class . ' e')->getSingleScalarResult(),
@@ -35,7 +35,7 @@ class DashboardController extends AbstractController
             'totalGallery' => (int) $em->createQuery('SELECT COUNT(g) FROM ' . Gallery::class . ' g')->getSingleScalarResult(),
             'totalTestimonials' => (int) $em->createQuery('SELECT COUNT(t) FROM ' . Testimonial::class . ' t')->getSingleScalarResult(),
             'totalDocuments' => (int) $em->createQuery('SELECT COUNT(d) FROM ' . Document::class . ' d')->getSingleScalarResult(),
-            'totalSubscribers' => (int) $em->createQuery('SELECT COUNT(n) FROM ' . Newsletter::class . ' n')->getSingleScalarResult(),
+            'totalSubscribers' => $newsletterRepository->countConfirmed(),
         ];
 
         // Les 5 éléments les plus récents de chaque type, affichés dans les widgets "Derniers ajouts"
